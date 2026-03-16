@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>ClickCV — Dashboard</title>
+<meta name="description" content="ClickCV — Upload your CV for AI-powered analysis."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+
+<style>
+/* =====================================================
+   TOKENS — matches LandingPage exactly
+===================================================== */
+:root {
+  --c-bg:       #F0F4FF;
+  --c-surface:  #ffffff;
+  --c-card:     #ffffff;
+  --c-border:   rgba(37,99,235,0.10);
+  --c-text:     #0f1624;
+  --c-muted:    rgba(15,22,36,0.55);
+  --c-primary:  #2563EB;
+  --c-accent:   #06B6D4;
+  --c-success:  #10b981;
+  --c-warn:     #f59e0b;
+  --c-danger:   #ef4444;
+  --grad-main:  linear-gradient(135deg,#2563EB 0%,#06B6D4 100%);
+  --grad-bg:    linear-gradient(160deg,#EEF2FF 0%,#E0F2FE 50%,#F0FDF4 100%);
+  --radius-sm:  10px; --radius-md:16px; --radius-lg:24px;
+  --shadow-sm:  0 2px 12px rgba(37,99,235,0.08);
+  --shadow-md:  0 8px 32px rgba(37,99,235,0.12);
+  --shadow-lg:  0 20px 50px rgba(37,99,235,0.15);
+ --font-d:'Plus Jakarta Sans',sans-serif;
+--font-b:'Plus Jakarta Sans',sans-serif;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-b);background:var(--c-bg);color:var(--c-text);min-height:100vh;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+ul,ol{list-style:none}
+
+/* Scrolling gradient bg — same as landing */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;
+  background:
+    radial-gradient(ellipse 70% 55% at 5% 0%,   rgba(37,99,235,0.10) 0%,transparent 65%),
+    radial-gradient(ellipse 55% 50% at 95% 15%,  rgba(6,182,212,0.09) 0%,transparent 60%),
+    radial-gradient(ellipse 65% 55% at 50% 65%,  rgba(37,99,235,0.06) 0%,transparent 65%),
+    radial-gradient(ellipse 70% 45% at 15% 100%, rgba(6,182,212,0.08) 0%,transparent 60%),
+    var(--grad-bg);
+  animation:bgShift 20s ease-in-out infinite alternate;
+  pointer-events:none;
+}
+@keyframes bgShift{
+  0%  {opacity:1;transform:scale(1) translateY(0)}
+  50% {opacity:0.9;transform:scale(1.03) translateY(-1%)}
+  100%{opacity:1;transform:scale(1) translateY(0)}
+}
+
+.skip-link{position:absolute;left:-999px;top:8px;padding:10px 16px;border-radius:8px;background:var(--c-primary);color:#fff;font-weight:600;z-index:9999}
+.skip-link:focus{left:16px}
+
+/* =====================================================
+   APP SHELL
+===================================================== */
+.app-shell{min-height:100vh;position:relative;z-index:1}
+
+/* =====================================================
+   TOPBAR
+===================================================== */
+.topbar{
+  position:sticky;top:0;z-index:200;
+  background:rgba(240,244,255,0.82);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--c-border);
+  transition:background .3s,box-shadow .3s;
+  animation:fadeDown .5s ease both;
+}
+.topbar.scrolled{background:rgba(255,255,255,0.94);box-shadow:var(--shadow-sm)}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+
+.topbar__inner{
+  max-width:1400px;margin-inline:auto;
+  padding:0 32px;min-height:72px;
+  display:flex;align-items:center;justify-content:space-between;gap:24px;
+}
+
+/* Brand */
+.brand{display:inline-flex;align-items:center;gap:10px;font-family:var(--font-d);font-weight:800;font-size:17px;letter-spacing:-.03em;color:var(--c-text)}
+.brand__mark{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;color:#fff;font-weight:900;font-size:15px;background:var(--grad-main);box-shadow:0 4px 14px rgba(37,99,235,.30)}
+
+/* Nav links */
+.topbar__nav{display:flex;align-items:center;gap:4px;margin-left:auto}
+.topbar__link{
+  position:relative;font-weight:500;font-size:14px;color:var(--c-muted);
+  padding:8px 14px;border-radius:999px;
+  transition:color .2s,background .2s;
+}
+.topbar__link:hover{color:var(--c-text);background:rgba(37,99,235,.06)}
+.topbar__link--active{color:var(--c-primary);background:rgba(37,99,235,.08);font-weight:600}
+.topbar__link--active::after{content:'';position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);width:20px;height:2px;border-radius:999px;background:var(--grad-main)}
+
+/* User */
+.topbar__user{
+  display:flex;align-items:center;gap:10px;
+  padding:7px 14px 7px 7px;border-radius:999px;
+  background:rgba(255,255,255,.72);border:1px solid var(--c-border);
+  cursor:pointer;transition:box-shadow .2s,border-color .2s;
+}
+.topbar__user:hover{box-shadow:var(--shadow-sm);border-color:rgba(37,99,235,.18)}
+.avatar{width:34px;height:34px;display:grid;place-items:center;border-radius:50%;color:#fff;font-weight:700;font-size:14px;background:var(--grad-main);flex-shrink:0}
+.topbar__username{font-size:13px;font-weight:700;color:var(--c-text)}
+.topbar__role{font-size:11px;color:var(--c-muted)}
+
+/* =====================================================
+   LAYOUT
+===================================================== */
+.layout{
+  display:grid;
+  grid-template-columns:260px 1fr;
+  max-width:1400px;margin-inline:auto;
+  min-height:calc(100vh - 72px);
+}
+
+/* =====================================================
+   SIDEBAR
+===================================================== */
+.sidebar{
+  padding:32px 20px;
+  border-right:1px solid var(--c-border);
+  animation:fadeSlideRight .6s .1s ease both;
+}
+@keyframes fadeSlideRight{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:translateX(0)}}
+
+.sidebar__panel{position:sticky;top:92px;display:grid;gap:24px}
+
+.sidebar__label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--c-muted)}
+
+.sidebar__nav{display:grid;gap:6px}
+
+.sidebar__item{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 14px;border-radius:var(--radius-sm);
+  color:var(--c-muted);font-weight:500;font-size:14px;
+  border:1px solid transparent;
+  transition:background .2s,border-color .2s,color .2s,transform .18s;
+}
+.sidebar__item:hover{color:var(--c-text);background:rgba(37,99,235,.05);border-color:var(--c-border);transform:translateX(3px)}
+.sidebar__item--active{color:var(--c-primary);background:rgba(37,99,235,.08);border-color:rgba(37,99,235,.14);font-weight:600}
+
+.sidebar__icon{width:10px;height:10px;border-radius:3px;background:var(--grad-main);flex-shrink:0}
+.sidebar__icon--alt{background:linear-gradient(135deg,var(--c-accent),#3b82f6)}
+.sidebar__icon--build{background:linear-gradient(135deg,#10b981,#06b6d4)}
+.sidebar__icon--compare{background:linear-gradient(135deg,#f59e0b,#ef4444)}
+.sidebar__icon--muted{background:linear-gradient(135deg,rgba(15,22,36,.4),rgba(15,22,36,.18))}
+
+.sidebar__summary{
+  padding:20px;border-radius:var(--radius-md);
+  background:#fff;border:1px solid var(--c-border);
+  box-shadow:var(--shadow-sm);
+}
+.sidebar__summaryLabel{font-size:12px;color:var(--c-muted);margin-bottom:8px}
+.sidebar__summaryValue{font-family:var(--font-d);font-size:22px;font-weight:800;background:var(--grad-main);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:6px}
+.sidebar__summaryText{font-size:13px;color:var(--c-muted);line-height:1.55}
+
+/* =====================================================
+   MAIN DASHBOARD
+===================================================== */
+.dashboard{padding:40px;animation:fadeSlideUp .6s .15s ease both}
+@keyframes fadeSlideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* Hero */
+.dashboard__hero{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:24px;
+  margin-bottom:40px;
+  padding:36px 40px;
+  border-radius:var(--radius-lg);
+  background:linear-gradient(135deg,rgba(37,99,235,.07) 0%,rgba(6,182,212,.05) 100%);
+  border:1px solid rgba(37,99,235,.12);
+  box-shadow:var(--shadow-sm);
+  position:relative;overflow:hidden;
+}
+.dashboard__hero::before{
+  content:'';position:absolute;top:-60px;right:-60px;
+  width:220px;height:220px;border-radius:50%;
+  background:radial-gradient(circle,rgba(6,182,212,.12) 0%,transparent 70%);
+  pointer-events:none;
+}
+
+.badge{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.16);font-size:12px;font-weight:600;color:var(--c-primary);margin-bottom:14px}
+.badge__dot{width:7px;height:7px;border-radius:50%;background:var(--c-accent);box-shadow:0 0 6px var(--c-accent);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.4)}}
+
+.dashboard__title{font-family:var(--font-d);font-size:clamp(24px,2.5vw,36px);font-weight:800;letter-spacing:-.03em;color:var(--c-text);margin-bottom:8px}
+.dashboard__subtitle{font-size:15px;color:var(--c-muted);line-height:1.6}
+.dashboard__heroActions{display:flex;gap:10px;flex-wrap:wrap;flex-shrink:0;align-self:center}
+
+/* =====================================================
+   BUTTONS
+===================================================== */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:10px 20px;border-radius:999px;
+  font-family:var(--font-b);font-weight:600;font-size:14px;
+  border:1px solid transparent;cursor:pointer;
+  transition:transform .18s,box-shadow .18s,background .18s,border-color .18s;
+  white-space:nowrap;
+}
+.btn:hover{transform:translateY(-2px)}
+.btn:active{transform:translateY(0)}
+.btn--primary{background:var(--grad-main);color:#fff;box-shadow:0 4px 18px rgba(37,99,235,.28)}
+.btn--primary:hover{box-shadow:0 6px 26px rgba(37,99,235,.40)}
+.btn--secondary{background:rgba(37,99,235,.07);color:var(--c-primary);border-color:rgba(37,99,235,.18)}
+.btn--secondary:hover{background:rgba(37,99,235,.12)}
+.btn--ghost{background:#fff;color:var(--c-text);border-color:var(--c-border)}
+.btn--ghost:hover{border-color:rgba(37,99,235,.22);background:rgba(37,99,235,.04)}
+.btn--danger{background:rgba(239,68,68,.08);color:var(--c-danger);border-color:rgba(239,68,68,.18)}
+.btn--danger:hover{background:rgba(239,68,68,.14)}
+.btn--full{width:100%}
+
+/* =====================================================
+   UPLOAD SECTION
+===================================================== */
+.upload-section{display:grid;gap:24px}
+
+/* Drop zone */
+.drop-zone{
+  position:relative;
+  background:#fff;
+  border:2px dashed rgba(37,99,235,.22);
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-sm);
+  padding:64px 40px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
+  text-align:center;cursor:pointer;outline:none;
+  transition:border-color .2s,background .2s,box-shadow .2s;
+  animation:fadeSlideUp .5s .3s ease both;
+}
+.drop-zone:hover,.drop-zone:focus-visible{
+  border-color:var(--c-primary);
+  background:rgba(37,99,235,.02);
+  box-shadow:0 0 0 4px rgba(37,99,235,.08),var(--shadow-sm);
+}
+.drop-zone.drag-over{
+  border-color:var(--c-primary);
+  background:rgba(37,99,235,.04);
+  box-shadow:0 0 0 6px rgba(37,99,235,.12),var(--shadow-md);
+}
+
+.drop-zone__icon-wrap{
+  width:80px;height:80px;display:grid;place-items:center;
+  border-radius:22px;
+  background:linear-gradient(135deg,rgba(37,99,235,.10),rgba(6,182,212,.10));
+  border:1px solid rgba(37,99,235,.12);
+  transition:transform .25s;
+}
+.drop-zone:hover .drop-zone__icon-wrap,
+.drop-zone.drag-over .drop-zone__icon-wrap{transform:translateY(-5px) scale(1.06)}
+
+.drop-zone__icon{width:38px;height:38px;color:var(--c-primary)}
+.drop-zone__title{font-family:var(--font-d);font-size:22px;font-weight:800;letter-spacing:-.02em;color:var(--c-text)}
+.drop-zone__subtitle{color:var(--c-muted);font-size:15px;max-width:420px;line-height:1.6}
+.drop-zone__subtitle strong{color:var(--c-primary)}
+
+.drop-zone__formats{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px}
+.format-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid}
+.format-pill--pdf {color:#B91C1C;background:rgba(239,68,68,.07);border-color:rgba(239,68,68,.18)}
+.format-pill--docx{color:#1D4ED8;background:rgba(37,99,235,.07);border-color:rgba(37,99,235,.18)}
+.format-pill--csv {color:#047857;background:rgba(34,197,94,.07);border-color:rgba(34,197,94,.18)}
+.format-pill__dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+#file-input{display:none}
+
+/* =====================================================
+   FILE LIST
+===================================================== */
+.file-list-section{display:none}
+.file-list-section.visible{display:block}
+.file-list-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.file-list-header h2{font-family:var(--font-d);font-size:18px;font-weight:800;letter-spacing:-.02em;color:var(--c-text)}
+.file-count{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 8px;border-radius:999px;background:rgba(37,99,235,.10);color:var(--c-primary);font-size:12px;font-weight:800;margin-left:8px}
+.file-list{display:grid;gap:12px}
+
+.file-item{
+  display:flex;align-items:center;gap:16px;
+  padding:16px 20px;
+  background:#fff;border:1px solid var(--c-border);
+  border-radius:var(--radius-sm);box-shadow:var(--shadow-sm);
+  animation:slideIn .22s cubic-bezier(.34,1.56,.64,1) both;
+  transition:border-color .2s,box-shadow .2s;
+}
+.file-item:hover{border-color:rgba(37,99,235,.18);box-shadow:var(--shadow-md)}
+@keyframes slideIn{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+.file-item__icon{width:44px;height:44px;display:grid;place-items:center;border-radius:12px;flex-shrink:0;font-size:12px;font-weight:800;letter-spacing:.03em}
+.file-item__icon--pdf {background:rgba(239,68,68,.10);color:#B91C1C;border:1px solid rgba(239,68,68,.18)}
+.file-item__icon--docx{background:rgba(37,99,235,.10);color:#1D4ED8;border:1px solid rgba(37,99,235,.18)}
+.file-item__icon--csv {background:rgba(34,197,94,.10);color:#047857;border:1px solid rgba(34,197,94,.18)}
+.file-item__icon--other{background:rgba(15,22,36,.06);color:var(--c-muted);border:1px solid var(--c-border)}
+.file-item__info{flex:1;min-width:0}
+.file-item__name{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;color:var(--c-text)}
+.file-item__meta{font-size:12px;color:var(--c-muted)}
+.file-item__status{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700;flex-shrink:0}
+.file-item__status--ready{background:rgba(16,185,129,.10);color:#065f46;border:1px solid rgba(16,185,129,.18)}
+.file-item__status__dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.file-item__remove{background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;color:var(--c-muted);display:grid;place-items:center;transition:color .15s,background .15s}
+.file-item__remove:hover{color:var(--c-danger);background:rgba(239,68,68,.08)}
+
+/* =====================================================
+   ANALYSE CTA
+===================================================== */
+.analyse-cta{
+  display:none;align-items:center;justify-content:space-between;gap:16px;
+  padding:24px 28px;
+  background:linear-gradient(135deg,rgba(37,99,235,.07),rgba(6,182,212,.06));
+  border:1px solid rgba(37,99,235,.14);
+  border-radius:var(--radius-md);
+  flex-wrap:wrap;
+}
+.analyse-cta.visible{display:flex;animation:fadeSlideUp .3s ease both}
+.analyse-cta__text h3{font-family:var(--font-d);font-size:17px;font-weight:800;letter-spacing:-.01em;color:var(--c-text);margin-bottom:4px}
+.analyse-cta__text p{font-size:14px;color:var(--c-muted)}
+.analyse-cta__actions{display:flex;gap:10px;flex-wrap:wrap}
+
+/* =====================================================
+   TIPS
+===================================================== */
+.section-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--c-muted);margin-bottom:16px}
+.tips-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+
+.tip-card{
+  padding:22px;background:#fff;
+  border:1px solid var(--c-border);border-radius:var(--radius-md);
+  box-shadow:var(--shadow-sm);
+  transition:transform .25s,border-color .25s,box-shadow .25s;
+  position:relative;overflow:hidden;
+}
+.tip-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--grad-main);transform:scaleX(0);transform-origin:left;transition:transform .35s}
+.tip-card:hover{transform:translateY(-4px);border-color:rgba(37,99,235,.18);box-shadow:var(--shadow-md)}
+.tip-card:hover::before{transform:scaleX(1)}
+
+.tip-card__icon{width:38px;height:38px;display:grid;place-items:center;border-radius:10px;margin-bottom:14px}
+.tip-card__icon--blue {background:rgba(37,99,235,.10);color:var(--c-primary)}
+.tip-card__icon--cyan {background:rgba(6,182,212,.10);color:#0891B2}
+.tip-card__icon--green{background:rgba(16,185,129,.10);color:#059669}
+.tip-card__title{font-family:var(--font-d);font-size:14px;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.tip-card__text{font-size:13px;color:var(--c-muted);line-height:1.6}
+
+/* =====================================================
+   SCROLL REVEAL
+===================================================== */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.reveal-delay-1{transition-delay:.08s}
+.reveal-delay-2{transition-delay:.16s}
+.reveal-delay-3{transition-delay:.24s}
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+@media(max-width:1100px){
+  .layout{grid-template-columns:1fr}
+  .sidebar{border-right:0;border-bottom:1px solid var(--c-border);padding:20px 32px}
+  .sidebar__panel{position:static;grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+  .tips-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:820px){
+  .topbar__inner,.dashboard{padding-left:20px;padding-right:20px}
+  .topbar__nav{gap:2px}
+  .topbar__link{padding:8px 10px;font-size:13px}
+  .dashboard__hero{flex-direction:column}
+  .tips-grid{grid-template-columns:1fr}
+}
+@media(max-width:560px){
+  .topbar__nav{display:none}
+  .drop-zone{padding:40px 20px}
+}
+</style>
+</head>
+
+<body class="page">
+<a class="skip-link" href="#main-content">Skip to content</a>
+
+<div class="app-shell">
+
+  <!-- ===================== TOPBAR ===================== -->
+  <header class="topbar" id="topbar">
+    <div class="topbar__inner">
+
+      <a class="brand" href="/">
+        <span class="brand__mark">C</span>
+        <span>ClickCV</span>
+      </a>
+
+      <nav class="topbar__nav" aria-label="Primary">
+        <a class="topbar__link topbar__link--active" href="/dashboard">Analyse CV</a>
+        <a class="topbar__link" href="/build-cv">Build CV</a>
+        <a class="topbar__link" href="/compare-cv">Compare CV</a>
+        <a class="topbar__link" href="#history">History</a>
+        <a class="topbar__link" href="/profile">Profile</a>
+      </nav>
+
+      <div class="topbar__user" aria-label="User profile">
+        <div class="avatar">A</div>
+        <div>
+          <p class="topbar__username">Ahmed</p>
+          <p class="topbar__role">ClickCV User</p>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ===================== LAYOUT ===================== -->
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" aria-label="Dashboard sidebar">
+      <div class="sidebar__panel">
+
+        <p class="sidebar__label">Workspace</p>
+
+        <nav class="sidebar__nav" aria-label="Secondary">
+          <a class="sidebar__item sidebar__item--active" href="/dashboard">
+            <span class="sidebar__icon"></span>
+            <span>Analyze New CV</span>
+          </a>
+          <a class="sidebar__item" href="/build-cv">
+            <span class="sidebar__icon sidebar__icon--build"></span>
+            <span>Build CV</span>
+          </a>
+          <a class="sidebar__item" href="/compare-cv">
+            <span class="sidebar__icon sidebar__icon--compare"></span>
+            <span>Compare CV</span>
+          </a>
+          <a class="sidebar__item" href="#reports">
+            <span class="sidebar__icon sidebar__icon--alt"></span>
+            <span>View Previous Reports</span>
+          </a>
+          <a class="sidebar__item" href="#settings">
+            <span class="sidebar__icon sidebar__icon--muted"></span>
+            <span>Profile Settings</span>
+          </a>
+        </nav>
+
+        <div class="sidebar__summary">
+          <p class="sidebar__summaryLabel">This month</p>
+          <p class="sidebar__summaryValue">12 analyses</p>
+          <p class="sidebar__summaryText">Your average CV score improved by 8%.</p>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main id="main-content" class="dashboard" role="main">
+
+      <!-- Hero -->
+      <section class="dashboard__hero" aria-labelledby="dashboard-title">
+        <div class="dashboard__heroContent">
+          <p class="badge">
+            <span class="badge__dot"></span>
+            AI resume insights ready
+          </p>
+          <h1 id="dashboard-title" class="dashboard__title">Upload Your CV</h1>
+          <p class="dashboard__subtitle">Drop your file below and let ClickCV AI do the rest, Ahmed</p>
+        </div>
+        <div class="dashboard__heroActions">
+          <a class="btn btn--secondary" href="#history">View History</a>
+          <a class="btn btn--primary" href="/build-cv">Build a CV →</a>
+        </div>
+      </section>
+
+      <!-- Upload -->
+      <div class="upload-section" id="analyze">
+
+        <!-- Drop zone -->
+        <div class="drop-zone" id="drop-zone" role="button" tabindex="0" aria-label="Drag and drop your CV file here, or press Enter to browse">
+          <div class="drop-zone__icon-wrap">
+            <svg class="drop-zone__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="16 16 12 12 8 16"/>
+              <line x1="12" y1="12" x2="12" y2="21"/>
+              <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+            </svg>
+          </div>
+          <h2 class="drop-zone__title">Drag &amp; drop your CV here</h2>
+          <p class="drop-zone__subtitle">Drop your file anywhere in this box, or <strong>click to browse</strong> your computer.</p>
+          <div class="drop-zone__formats">
+            <span class="format-pill format-pill--pdf"><span class="format-pill__dot"></span>PDF</span>
+            <span class="format-pill format-pill--docx"><span class="format-pill__dot"></span>DOCX</span>
+            <span class="format-pill format-pill--csv"><span class="format-pill__dot"></span>CSV</span>
+          </div>
+        </div>
+
+        <input id="file-input" type="file" accept=".pdf,.doc,.docx,.csv" multiple aria-hidden="true"/>
+
+        <!-- Analyse CTA -->
+        <div class="analyse-cta" id="analyse-cta" aria-live="polite">
+          <div class="analyse-cta__text">
+            <h3>Ready to analyse</h3>
+            <p id="cta-desc">Your files are queued and ready for AI analysis.</p>
+          </div>
+          <div class="analyse-cta__actions">
+            <button class="btn btn--danger" id="clear-all-btn" type="button">Clear all</button>
+            <button class="btn btn--primary" id="analyse-btn" type="button">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+              Analyse CV
+            </button>
+          </div>
+        </div>
+
+        <!-- File list -->
+        <div class="file-list-section" id="file-list-section" aria-live="polite">
+          <div class="file-list-header">
+            <h2>Uploaded Files <span class="file-count" id="file-count">0</span></h2>
+          </div>
+          <div class="file-list" id="file-list" role="list"></div>
+        </div>
+
+        <!-- Tips -->
+        <div class="reveal">
+          <p class="section-label">Tips for best results</p>
+          <div class="tips-grid">
+            <div class="tip-card reveal reveal-delay-1">
+              <div class="tip-card__icon tip-card__icon--blue">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                </svg>
+              </div>
+              <h3 class="tip-card__title">Use PDF or DOCX</h3>
+              <p class="tip-card__text">For the most accurate ATS scan, upload a single-column PDF or DOCX without headers or footers.</p>
+            </div>
+            <div class="tip-card reveal reveal-delay-2">
+              <div class="tip-card__icon tip-card__icon--cyan">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"/>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+              </div>
+              <h3 class="tip-card__title">Include a job description</h3>
+              <p class="tip-card__text">Upload a CSV of target roles or paste a job description to get skill-gap matching insights.</p>
+            </div>
+            <div class="tip-card reveal reveal-delay-3">
+              <div class="tip-card__icon tip-card__icon--green">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              </div>
+              <h3 class="tip-card__title">Max 5 MB per file</h3>
+              <p class="tip-card__text">Keep files under 5 MB. Scanned images may reduce accuracy — prefer text-based exports.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+// Topbar scroll effect
+const topbar = document.getElementById('topbar');
+window.addEventListener('scroll', () => topbar.classList.toggle('scrolled', window.scrollY > 10));
+
+// Scroll reveal
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); observer.unobserve(e.target); } });
+}, { threshold: 0.10 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// Drop zone logic
+const dropZone   = document.getElementById('drop-zone');
+const fileInput  = document.getElementById('file-input');
+const fileList   = document.getElementById('file-list');
+const fileCount  = document.getElementById('file-count');
+const fileSection= document.getElementById('file-list-section');
+const cta        = document.getElementById('analyse-cta');
+const clearBtn   = document.getElementById('clear-all-btn');
+
+let files = [];
+
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1048576) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/1048576).toFixed(1) + ' MB';
+}
+
+function getExt(name) {
+  return name.split('.').pop().toLowerCase();
+}
+
+function iconClass(ext) {
+  if (ext === 'pdf')  return 'file-item__icon--pdf';
+  if (ext === 'docx' || ext === 'doc') return 'file-item__icon--docx';
+  if (ext === 'csv')  return 'file-item__icon--csv';
+  return 'file-item__icon--other';
+}
+
+function renderFiles() {
+  fileList.innerHTML = '';
+  files.forEach((f, i) => {
+    const ext = getExt(f.name);
+    const li = document.createElement('div');
+    li.className = 'file-item'; li.setAttribute('role','listitem');
+    li.innerHTML = `
+      <div class="file-item__icon ${iconClass(ext)}">${ext.toUpperCase()}</div>
+      <div class="file-item__info">
+        <p class="file-item__name">${f.name}</p>
+        <p class="file-item__meta">${formatSize(f.size)}</p>
+      </div>
+      <span class="file-item__status file-item__status--ready">
+        <span class="file-item__status__dot"></span>Ready
+      </span>
+      <button class="file-item__remove" aria-label="Remove ${f.name}" data-index="${i}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>`;
+    fileList.appendChild(li);
+  });
+  fileCount.textContent = files.length;
+  const hasFiles = files.length > 0;
+  fileSection.classList.toggle('visible', hasFiles);
+  cta.classList.toggle('visible', hasFiles);
+}
+
+function addFiles(newFiles) {
+  files = [...files, ...Array.from(newFiles)];
+  renderFiles();
+}
+
+dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' ') fileInput.click(); });
+fileInput.addEventListener('change', e => addFiles(e.target.files));
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('drag-over');
+  addFiles(e.dataTransfer.files);
+});
+
+fileList.addEventListener('click', e => {
+  const btn = e.target.closest('[data-index]');
+  if(btn){ files.splice(parseInt(btn.dataset.index),1); renderFiles(); }
+});
+
+clearBtn.addEventListener('click', () => { files=[]; renderFiles(); fileInput.value=''; });
+</script>
+</body>
+</html>

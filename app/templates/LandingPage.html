@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>ClickCV — AI Resume Analysis Platform</title>
+<meta name="description" content="ClickCV analyzes resumes using AI and NLP to evaluate ATS compatibility, detect weaknesses, and provide optimization suggestions."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Cabinet+Grotesk:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --c-bg:       #F0F4FF;
+  --c-surface:  #ffffff;
+  --c-card:     #ffffff;
+  --c-border:   rgba(37,99,235,0.10);
+  --c-text:     #0f1624;
+  --c-muted:    rgba(15,22,36,0.55);
+  --c-primary:  #2563EB;
+  --c-accent:   #06B6D4;
+  --c-warn:     #f59e0b;
+  --c-success:  #10b981;
+  --grad-main:  linear-gradient(135deg,#2563EB 0%,#06B6D4 100%);
+  --grad-bg:    linear-gradient(160deg,#EEF2FF 0%,#E0F2FE 50%,#F0FDF4 100%);
+  --radius-sm:  10px; --radius-md:16px; --radius-lg:24px; --radius-xl:32px;
+  --shadow-sm:  0 2px 12px rgba(37,99,235,0.08);
+  --shadow-md:  0 8px 32px rgba(37,99,235,0.12);
+  --shadow-lg:  0 20px 50px rgba(37,99,235,0.15);
+--font-d:'Clash Display',sans-serif; --font-b:'Cabinet Grotesk',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-b);background:var(--c-bg);color:var(--c-text);min-height:100vh;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+img,svg{display:block;max-width:100%}
+ul,ol{list-style:none}
+
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;
+  background:
+    radial-gradient(ellipse 70% 55% at 5% 0%,   rgba(37,99,235,0.10) 0%,transparent 65%),
+    radial-gradient(ellipse 55% 50% at 95% 15%,  rgba(6,182,212,0.09) 0%,transparent 60%),
+    radial-gradient(ellipse 65% 55% at 50% 65%,  rgba(37,99,235,0.06) 0%,transparent 65%),
+    radial-gradient(ellipse 70% 45% at 15% 100%, rgba(6,182,212,0.08) 0%,transparent 60%),
+    var(--grad-bg);
+  animation:bgShift 20s ease-in-out infinite alternate;
+  pointer-events:none;
+}
+@keyframes bgShift{
+  0%  {opacity:1;transform:scale(1) translateY(0)}
+  50% {opacity:0.9;transform:scale(1.03) translateY(-1.5%)}
+  100%{opacity:1;transform:scale(1) translateY(0)}
+}
+
+.skip-link{position:absolute;left:-999px;top:8px;padding:10px 16px;border-radius:8px;background:var(--c-primary);color:#fff;font-weight:600;z-index:9999}
+.skip-link:focus{left:16px}
+
+/* NAVBAR */
+.header{position:sticky;top:0;z-index:200;background:rgba(240,244,255,0.82);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(37,99,235,0.08);transition:background .3s,box-shadow .3s}
+.header.scrolled{background:rgba(255,255,255,0.94);box-shadow:var(--shadow-sm)}
+.container{width:min(1140px,calc(100% - 40px));margin-inline:auto}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:16px 0;gap:24px}
+.nav__brand{display:flex;align-items:center;gap:10px;font-family:var(--font-d);font-weight:800;font-size:18px;letter-spacing:-.03em;color:var(--c-text)}
+.nav__logo{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-size:16px;font-weight:900;color:#fff;background:var(--grad-main);box-shadow:0 4px 14px rgba(37,99,235,.30)}
+.nav__content{display:flex;align-items:center;gap:32px}
+.nav__links{display:flex;gap:28px}
+.nav__link{font-size:14px;font-weight:500;color:var(--c-muted);transition:color .2s;position:relative}
+.nav__link::after{content:'';position:absolute;bottom:-3px;left:0;width:0;height:1.5px;background:var(--grad-main);transition:width .25s}
+.nav__link:hover{color:var(--c-text)}
+.nav__link:hover::after{width:100%}
+.nav__actions{display:flex;gap:10px;align-items:center}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 20px;border-radius:999px;font-family:var(--font-b);font-weight:600;font-size:14px;border:1px solid transparent;cursor:pointer;transition:transform .18s,box-shadow .18s,opacity .18s,background .18s;white-space:nowrap}
+.btn:hover{transform:translateY(-2px)}
+.btn:active{transform:translateY(0)}
+.btn--ghost{background:transparent;color:var(--c-text);border-color:rgba(37,99,235,.18)}
+.btn--ghost:hover{background:rgba(37,99,235,.06);border-color:rgba(37,99,235,.28)}
+.btn--primary{background:var(--grad-main);color:#fff;box-shadow:0 4px 18px rgba(37,99,235,.28)}
+.btn--primary:hover{box-shadow:0 6px 26px rgba(37,99,235,.40)}
+.btn--secondary{background:rgba(37,99,235,.07);color:var(--c-primary);border-color:rgba(37,99,235,.18)}
+.btn--secondary:hover{background:rgba(37,99,235,.12)}
+.btn--lg{padding:13px 28px;font-size:15px}
+.btn--full{width:100%}
+
+/* HERO */
+.hero{position:relative;z-index:1;padding:110px 0 90px;overflow:hidden}
+.hero__grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.badge{display:inline-flex;align-items:center;gap:10px;padding:8px 14px;border-radius:999px;background:rgba(37,99,235,.07);border:1px solid rgba(37,99,235,.18);font-size:13px;font-weight:500;color:var(--c-primary);margin-bottom:28px;animation:fadeSlideUp .7s ease both}
+.badge__dot{width:8px;height:8px;border-radius:50%;background:var(--c-accent);box-shadow:0 0 8px var(--c-accent);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.4)}}
+.hero__title{font-family:var(--font-d);font-size:clamp(36px,4vw,58px);font-weight:800;line-height:1.0;letter-spacing:-.04em;color:var(--c-text);margin-bottom:22px;animation:fadeSlideUp .7s .1s ease both}
+.text-gradient{background:var(--grad-main);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero__subtitle{font-size:16px;color:var(--c-muted);line-height:1.75;max-width:50ch;margin-bottom:36px;animation:fadeSlideUp .7s .2s ease both}
+.hero__actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:48px;animation:fadeSlideUp .7s .3s ease both}
+.hero__stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;animation:fadeSlideUp .7s .4s ease both}
+.stat{padding:14px 16px;border-radius:var(--radius-md);background:rgba(255,255,255,.72);border:1px solid rgba(37,99,235,.10);box-shadow:var(--shadow-sm);backdrop-filter:blur(8px)}
+.stat__label{font-size:12px;color:var(--c-muted);margin-bottom:6px;font-weight:500}
+.stat__value{font-family:var(--font-d);font-size:17px;font-weight:800;background:var(--grad-main);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* HERO VISUAL */
+.hero__visual{position:relative;animation:fadeSlideLeft .9s .2s ease both}
+@keyframes fadeSlideLeft{from{opacity:0;transform:translateX(36px)}to{opacity:1;transform:translateX(0)}}
+.hero__visual::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,rgba(37,99,235,.10) 0%,transparent 70%);filter:blur(40px);pointer-events:none;animation:glowPulse 5s ease-in-out infinite}
+@keyframes glowPulse{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.7}50%{transform:translate(-50%,-50%) scale(1.2);opacity:1}}
+
+.cv-stack{display:flex;flex-direction:column;gap:14px}
+.cv-card{background:#fff;border:1px solid rgba(37,99,235,.10);border-radius:var(--radius-lg);padding:20px 24px;box-shadow:var(--shadow-md);transition:transform .3s,box-shadow .3s,border-color .3s;animation:cardFloat var(--float-dur,5s) ease-in-out infinite;animation-delay:var(--float-delay,0s)}
+.cv-card:hover{transform:translateY(-5px) scale(1.01);box-shadow:var(--shadow-lg);border-color:rgba(37,99,235,.22)}
+@keyframes cardFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+
+.cv-card--profile{--float-dur:6s;--float-delay:0s}
+.cv-profile-row{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.cv-avatar{width:46px;height:46px;border-radius:14px;background:var(--grad-main);display:grid;place-items:center;font-family:var(--font-d);font-weight:900;font-size:18px;color:#fff;flex-shrink:0;box-shadow:0 4px 12px rgba(37,99,235,.28)}
+.cv-name{font-family:var(--font-d);font-weight:700;font-size:16px;color:var(--c-text);margin-bottom:3px}
+.cv-role{font-size:13px;color:var(--c-muted)}
+.cv-skills-row{display:flex;flex-wrap:wrap;gap:8px}
+.cv-skill{font-size:12px;font-weight:600;padding:5px 12px;border-radius:999px;background:rgba(37,99,235,.07);border:1px solid rgba(37,99,235,.16);color:var(--c-primary);transition:background .2s,transform .2s}
+.cv-skill:hover{background:rgba(37,99,235,.14);transform:scale(1.05)}
+
+.cv-card--score{--float-dur:7s;--float-delay:.7s;display:flex;align-items:center;gap:20px}
+.score-ring-wrap{position:relative;width:72px;height:72px;flex-shrink:0}
+.score-ring{width:72px;height:72px;border-radius:50%;background:conic-gradient(var(--c-primary) 82%,rgba(37,99,235,.10) 0);display:grid;place-items:center}
+.score-ring::before{content:'';position:absolute;width:54px;height:54px;border-radius:50%;background:#fff}
+.score-value{position:relative;z-index:1;font-family:var(--font-d);font-weight:800;font-size:15px;color:var(--c-primary)}
+.score-info{flex:1}
+.score-title{font-family:var(--font-d);font-weight:700;font-size:15px;color:var(--c-text);margin-bottom:10px}
+.score-bars{display:grid;gap:8px}
+.score-bar-row{display:grid;grid-template-columns:72px 1fr 30px;align-items:center;gap:8px}
+.score-bar-label{font-size:11px;color:var(--c-muted);font-weight:500}
+.score-bar-track{height:6px;border-radius:999px;background:rgba(37,99,235,.08);overflow:hidden}
+.score-bar-fill{height:100%;border-radius:999px;background:var(--grad-main);transform-origin:left;animation:barGrow 1.3s ease both;animation-delay:var(--bar-delay,.6s)}
+@keyframes barGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.score-bar-pct{font-size:11px;font-weight:700;color:var(--c-primary)}
+
+.cv-card--insights{--float-dur:5.5s;--float-delay:1.3s}
+.insights-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--c-muted);margin-bottom:14px}
+.insights-list{display:grid;gap:9px}
+.insight-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);background:rgba(37,99,235,.03);border:1px solid rgba(37,99,235,.08);transition:background .2s,border-color .2s,transform .2s;animation:fadeSlideUp .5s ease both;animation-delay:var(--insight-delay,0s)}
+.insight-item:hover{background:rgba(37,99,235,.07);border-color:rgba(37,99,235,.18);transform:translateX(3px)}
+.insight-dot{width:10px;height:10px;border-radius:50%;margin-top:4px;flex-shrink:0}
+.insight-dot--green {background:#10b981;box-shadow:0 0 7px rgba(16,185,129,.45)}
+.insight-dot--yellow{background:var(--c-warn);box-shadow:0 0 7px rgba(245,158,11,.45)}
+.insight-dot--blue  {background:var(--c-primary);box-shadow:0 0 7px rgba(37,99,235,.45)}
+.insight-text strong{display:block;font-size:13px;font-weight:600;color:var(--c-text);margin-bottom:2px}
+.insight-text span{font-size:12px;color:var(--c-muted)}
+
+/* SECTIONS */
+.section{position:relative;z-index:1;padding:100px 0}
+.section--alt{background:rgba(255,255,255,.50);border-top:1px solid rgba(37,99,235,.07);border-bottom:1px solid rgba(37,99,235,.07);backdrop-filter:blur(8px)}
+.section__header{text-align:center;max-width:62ch;margin:0 auto 60px}
+.section__title{font-family:var(--font-d);font-size:clamp(26px,3vw,38px);font-weight:800;letter-spacing:-.03em;line-height:1.1;color:var(--c-text);margin-bottom:14px}
+.section__subtitle{color:var(--c-muted);font-size:16px;line-height:1.7}
+
+/* FEATURES */
+.grid{display:grid;gap:20px}
+.grid--3{grid-template-columns:repeat(3,1fr)}
+.feature{padding:32px;border-radius:var(--radius-lg);background:#fff;border:1px solid rgba(37,99,235,.09);box-shadow:var(--shadow-sm);transition:transform .3s,border-color .3s,box-shadow .3s;position:relative;overflow:hidden}
+.feature::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--grad-main);transform:scaleX(0);transform-origin:left;transition:transform .4s}
+.feature:hover{transform:translateY(-6px);border-color:rgba(37,99,235,.20);box-shadow:var(--shadow-lg)}
+.feature:hover::before{transform:scaleX(1)}
+.feature__icon{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;margin-bottom:20px;border:1px solid rgba(37,99,235,.12);background:rgba(37,99,235,.05)}
+.icon{width:20px;height:20px;border-radius:6px}
+.icon--primary{background:var(--grad-main)}
+.icon--accent{background:linear-gradient(135deg,var(--c-accent),#3b82f6)}
+.icon--neutral{background:linear-gradient(135deg,#64748b,#94a3b8)}
+.feature__title{font-family:var(--font-d);font-size:18px;font-weight:700;letter-spacing:-.02em;color:var(--c-text);margin-bottom:10px}
+.feature__text{font-size:14px;color:var(--c-muted);line-height:1.7;margin-bottom:18px}
+.feature__list{padding-left:16px;display:grid;gap:6px}
+.feature__list li{font-size:13px;color:var(--c-muted);list-style:disc}
+
+/* STEPS */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.steps__item{padding:32px;border-radius:var(--radius-lg);background:#fff;border:1px solid rgba(37,99,235,.09);box-shadow:var(--shadow-sm);transition:transform .3s,border-color .3s,box-shadow .3s}
+.steps__item:hover{transform:translateY(-5px);border-color:rgba(37,99,235,.18);box-shadow:var(--shadow-md)}
+.steps__num{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-family:var(--font-d);font-weight:900;font-size:15px;color:#fff;background:var(--grad-main);margin-bottom:20px;box-shadow:0 4px 12px rgba(37,99,235,.28)}
+.steps__title{font-family:var(--font-d);font-weight:700;font-size:17px;letter-spacing:-.02em;color:var(--c-text);margin-bottom:10px}
+.steps__text{font-size:14px;color:var(--c-muted);line-height:1.7}
+
+/* CTA */
+.cta{position:relative;z-index:1;padding:0 0 100px}
+.cta__box{display:flex;align-items:center;justify-content:space-between;gap:32px;padding:60px;border-radius:var(--radius-xl);background:linear-gradient(135deg,rgba(37,99,235,.08) 0%,rgba(6,182,212,.06) 100%);border:1px solid rgba(37,99,235,.16);box-shadow:0 0 60px rgba(37,99,235,.08),var(--shadow-md);position:relative;overflow:hidden}
+.cta__box::before{content:'';position:absolute;top:-80px;right:-60px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(6,182,212,.12) 0%,transparent 70%);pointer-events:none}
+.cta__title{font-family:var(--font-d);font-size:clamp(22px,2.5vw,32px);font-weight:800;letter-spacing:-.03em;color:var(--c-text);margin-bottom:12px}
+.cta__text{color:var(--c-muted);font-size:16px;max-width:52ch;line-height:1.7}
+.cta__actions{flex-shrink:0}
+
+/* FOOTER */
+.footer{position:relative;z-index:1;background:rgba(255,255,255,.62);border-top:1px solid rgba(37,99,235,.08);backdrop-filter:blur(12px);padding:56px 0 32px}
+.footer__grid{display:grid;grid-template-columns:1.2fr .8fr;gap:60px;align-items:start;margin-bottom:40px}
+.footer__logo{display:inline-flex;align-items:center;gap:10px;font-family:var(--font-d);font-weight:800;font-size:18px;letter-spacing:-.03em;color:var(--c-text);margin-bottom:14px}
+.footer__mark{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--grad-main);color:#fff;font-weight:900;font-size:15px}
+.footer__text{color:var(--c-muted);font-size:14px;line-height:1.7;max-width:42ch}
+.footer__links{display:grid;grid-template-columns:repeat(2,1fr);gap:32px}
+.footer__title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--c-muted);margin-bottom:16px}
+.footer__list{display:grid;gap:10px}
+.footer__link{font-size:14px;color:var(--c-muted);transition:color .2s}
+.footer__link:hover{color:var(--c-primary)}
+.footer__bottom{display:flex;align-items:center;justify-content:space-between;padding-top:28px;border-top:1px solid rgba(37,99,235,.08);color:var(--c-muted);font-size:13px}
+
+/* SCROLL REVEAL */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .65s ease,transform .65s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.reveal-delay-1{transition-delay:.10s}
+.reveal-delay-2{transition-delay:.20s}
+.reveal-delay-3{transition-delay:.30s}
+
+@keyframes fadeSlideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* RESPONSIVE */
+@media(max-width:980px){
+  .hero__grid{grid-template-columns:1fr}
+  .grid--3{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr}
+  .footer__grid{grid-template-columns:1fr}
+  .cta__box{flex-direction:column;padding:40px}
+  .cv-card--score{flex-direction:column;align-items:flex-start}
+}
+@media(max-width:640px){
+  .hero{padding:80px 0 60px}
+  .hero__stats{grid-template-columns:1fr}
+  .nav__links{display:none}
+  .footer__links{grid-template-columns:1fr}
+  .footer__bottom{flex-direction:column;gap:8px;text-align:center}
+}
+</style>
+</head>
+<body class="page">
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="header" id="site-header">
+  <div class="container">
+    <nav class="nav">
+      <a class="nav__brand" href="/"><span class="nav__logo">C</span><span>ClickCV</span></a>
+      <div class="nav__content">
+        <ul class="nav__links">
+          <li><a class="nav__link" href="#features">Features</a></li>
+          <li><a class="nav__link" href="#how-it-works">How It Works</a></li>
+          <li><a class="nav__link" href="#about">About</a></li>
+        </ul>
+        <div class="nav__actions">
+          <a class="btn btn--ghost" href="/signin">Sign In</a>
+          <a class="btn btn--primary" href="/signup">Sign Up</a>
+        </div>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+<section class="hero">
+  <div class="container hero__grid">
+    <div class="hero__content">
+      <p class="badge"><span class="badge__dot"></span>AI-powered resume analysis platform</p>
+      <h1 class="hero__title">Land Your Dream Job With <span class="text-gradient">ClickCV AI</span></h1>
+      <p class="hero__subtitle">Upload your resume and get instant AI-powered feedback — ATS compatibility scores, skill gap detection, keyword analysis, and intelligent optimization recommendations.</p>
+      <div class="hero__actions">
+        <a class="btn btn--primary btn--lg" href="/signup">Analyze Your Resume →</a>
+        <a class="btn btn--secondary btn--lg" href="#features">See How It Works</a>
+      </div>
+      <dl class="hero__stats">
+        <div class="stat"><dt class="stat__label">AI analysis time</dt><dd class="stat__value">~45s</dd></div>
+        <div class="stat"><dt class="stat__label">Resume insights</dt><dd class="stat__value">10+</dd></div>
+        <div class="stat"><dt class="stat__label">Supported formats</dt><dd class="stat__value">PDF / DOCX</dd></div>
+      </dl>
+    </div>
+
+    <div class="hero__visual">
+      <div class="cv-stack">
+        <div class="cv-card cv-card--profile">
+          <div class="cv-profile-row">
+            <div class="cv-avatar">A</div>
+            <div><p class="cv-name">Ahmed Gamel</p><p class="cv-role">Software Engineer · Malaysia</p></div>
+          </div>
+          <div class="cv-skills-row">
+            <span class="cv-skill">Python</span><span class="cv-skill">Flask</span>
+            <span class="cv-skill">Machine Learning</span><span class="cv-skill">SQL</span><span class="cv-skill">NLP</span>
+          </div>
+        </div>
+
+        <div class="cv-card cv-card--score">
+          <div class="score-ring-wrap"><div class="score-ring"><span class="score-value">82%</span></div></div>
+          <div class="score-info">
+            <p class="score-title">AI Resume Score</p>
+            <div class="score-bars">
+              <div class="score-bar-row"><span class="score-bar-label">ATS Score</span><div class="score-bar-track"><div class="score-bar-fill" style="width:82%;--bar-delay:.5s"></div></div><span class="score-bar-pct">82%</span></div>
+              <div class="score-bar-row"><span class="score-bar-label">Keywords</span><div class="score-bar-track"><div class="score-bar-fill" style="width:68%;--bar-delay:.7s"></div></div><span class="score-bar-pct">68%</span></div>
+              <div class="score-bar-row"><span class="score-bar-label">Formatting</span><div class="score-bar-track"><div class="score-bar-fill" style="width:91%;--bar-delay:.9s"></div></div><span class="score-bar-pct">91%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cv-card cv-card--insights">
+          <p class="insights-title">AI Insights</p>
+          <div class="insights-list">
+            <div class="insight-item" style="--insight-delay:.3s"><span class="insight-dot insight-dot--green"></span><div class="insight-text"><strong>Strong formatting detected</strong><span>Structure is ATS-compatible</span></div></div>
+            <div class="insight-item" style="--insight-delay:.45s"><span class="insight-dot insight-dot--yellow"></span><div class="insight-text"><strong>3 missing keywords</strong><span>Add Docker, CI/CD, Testing</span></div></div>
+            <div class="insight-item" style="--insight-delay:.6s"><span class="insight-dot insight-dot--blue"></span><div class="insight-text"><strong>Summary needs improvement</strong><span>Add measurable achievements</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="features" class="section">
+  <div class="container">
+    <header class="section__header reveal">
+      <h2 class="section__title">Powerful AI Tools to <span class="text-gradient">Improve Your Resume</span></h2>
+      <p class="section__subtitle">ClickCV uses NLP and AI to evaluate resumes and provide actionable recommendations tailored to your target role.</p>
+    </header>
+    <div class="grid grid--3">
+      <article class="feature reveal reveal-delay-1">
+        <div class="feature__icon"><span class="icon icon--primary"></span></div>
+        <h3 class="feature__title">ATS Compatibility Analysis</h3>
+        <p class="feature__text">Evaluate your resume against Applicant Tracking System requirements used by top companies.</p>
+        <ul class="feature__list"><li>ATS formatting analysis</li><li>Keyword detection & scoring</li><li>Structure evaluation</li></ul>
+      </article>
+      <article class="feature reveal reveal-delay-2">
+        <div class="feature__icon"><span class="icon icon--accent"></span></div>
+        <h3 class="feature__title">Resume Weakness Detection</h3>
+        <p class="feature__text">Identify missing sections, formatting problems, and lack of important keywords instantly.</p>
+        <ul class="feature__list"><li>Missing section detection</li><li>Keyword gap analysis</li><li>Content quality feedback</li></ul>
+      </article>
+      <article class="feature reveal reveal-delay-3">
+        <div class="feature__icon"><span class="icon icon--neutral"></span></div>
+        <h3 class="feature__title">Resume Optimization</h3>
+        <p class="feature__text">Receive AI-generated recommendations and optimized resume versions ready to apply.</p>
+        <ul class="feature__list"><li>Improvement suggestions</li><li>CV optimization guidance</li><li>Professional formatting tips</li></ul>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section id="how-it-works" class="section section--alt">
+  <div class="container">
+    <header class="section__header reveal">
+      <h2 class="section__title">How <span class="text-gradient">ClickCV</span> Works</h2>
+      <p class="section__subtitle">Three simple steps to analyze and optimize your resume with AI.</p>
+    </header>
+    <ol class="steps">
+      <li class="steps__item reveal reveal-delay-1"><div class="steps__num">1</div><h3 class="steps__title">Upload Your Resume</h3><p class="steps__text">Upload your CV in PDF or DOCX format. ClickCV extracts structured information using NLP technology.</p></li>
+      <li class="steps__item reveal reveal-delay-2"><div class="steps__num">2</div><h3 class="steps__title">AI Resume Analysis</h3><p class="steps__text">The system analyzes resume structure, ATS compatibility, keyword density, and content quality.</p></li>
+      <li class="steps__item reveal reveal-delay-3"><div class="steps__num">3</div><h3 class="steps__title">Get Optimization Report</h3><p class="steps__text">Receive a detailed report with recommendations and improvements to strengthen your CV.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section id="about" class="cta">
+  <div class="container">
+    <div class="cta__box reveal">
+      <div class="cta__content">
+        <h2 class="cta__title">Ready to Improve Your Resume?</h2>
+        <p class="cta__text">Upload your CV, analyze it with AI, and receive intelligent recommendations to land more interviews.</p>
+      </div>
+      <div class="cta__actions"><a class="btn btn--primary btn--lg" href="/signup">Start Free Analysis →</a></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="footer">
+  <div class="container footer__grid">
+    <div class="footer__brand">
+      <a class="footer__logo" href="/"><span class="footer__mark">C</span><span>ClickCV</span></a>
+      <p class="footer__text">AI-powered resume analysis and optimization platform built for job seekers and early-career professionals.</p>
+    </div>
+    <div class="footer__links">
+      <div>
+        <h3 class="footer__title">Product</h3>
+        <ul class="footer__list">
+          <li><a class="footer__link" href="#features">Features</a></li>
+          <li><a class="footer__link" href="#how-it-works">How It Works</a></li>
+          <li><a class="footer__link" href="#about">About</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="footer__title">Account</h3>
+        <ul class="footer__list">
+          <li><a class="footer__link" href="/signin">Sign In</a></li>
+          <li><a class="footer__link" href="/signup">Sign Up</a></li>
+          <li><a class="footer__link" href="#">Privacy Policy</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="container footer__bottom">
+    <p>© 2026 ClickCV — Developed by Engineer Ahmed Gamel</p>
+    <p>Built with Flask · PostgreSQL · AI/NLP</p>
+  </div>
+</footer>
+
+<script>
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); observer.unobserve(e.target); } });
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+const header = document.getElementById('site-header');
+window.addEventListener('scroll', () => { header.classList.toggle('scrolled', window.scrollY > 20); });
+</script>
+</body>
+</html>

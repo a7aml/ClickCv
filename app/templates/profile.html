@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>ClickCV — Profile Settings</title>
+<meta name="description" content="Manage your ClickCV account, preferences, and security settings."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+
+<style>
+:root {
+  --c-bg:      #F0F4FF;
+  --c-surface: #ffffff;
+  --c-text:    #0f1624;
+  --c-muted:   rgba(15,22,36,0.55);
+  --c-primary: #2563EB;
+  --c-accent:  #06B6D4;
+  --c-success: #10b981;
+  --c-warn:    #f59e0b;
+  --c-danger:  #ef4444;
+  --c-border:  rgba(37,99,235,0.10);
+  --grad-main: linear-gradient(135deg,#2563EB 0%,#06B6D4 100%);
+  --grad-bg:   linear-gradient(160deg,#EEF2FF 0%,#E0F2FE 50%,#F0FDF4 100%);
+  --shadow-sm: 0 2px 12px rgba(37,99,235,0.08);
+  --shadow-md: 0 8px 32px rgba(37,99,235,0.12);
+  --shadow-lg: 0 20px 50px rgba(37,99,235,0.15);
+  --radius-sm: 10px; --radius-md:16px; --radius-lg:24px;
+  --font:'Plus Jakarta Sans',sans-serif;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--c-bg);color:var(--c-text);min-height:100vh;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+input,button,select{font:inherit}
+
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;
+  background:
+    radial-gradient(ellipse 70% 55% at 5% 0%,   rgba(37,99,235,0.10) 0%,transparent 65%),
+    radial-gradient(ellipse 55% 50% at 95% 15%,  rgba(6,182,212,0.09) 0%,transparent 60%),
+    radial-gradient(ellipse 65% 55% at 50% 65%,  rgba(37,99,235,0.06) 0%,transparent 65%),
+    var(--grad-bg);
+  animation:bgShift 20s ease-in-out infinite alternate;
+  pointer-events:none;
+}
+@keyframes bgShift{
+  0%  {opacity:1;transform:scale(1) translateY(0)}
+  50% {opacity:0.9;transform:scale(1.03) translateY(-1%)}
+  100%{opacity:1;transform:scale(1) translateY(0)}
+}
+
+.skip-link{position:absolute;left:-999px;top:8px;padding:10px 16px;border-radius:8px;background:var(--c-primary);color:#fff;font-weight:600;z-index:9999}
+.skip-link:focus{left:16px}
+
+/* =====================================================
+   TOPBAR
+===================================================== */
+.topbar{
+  position:sticky;top:0;z-index:200;
+  background:rgba(240,244,255,0.82);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--c-border);
+  transition:background .3s,box-shadow .3s;
+  animation:fadeDown .5s ease both;
+}
+.topbar.scrolled{background:rgba(255,255,255,0.94);box-shadow:var(--shadow-sm)}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+
+.topbar__inner{
+  max-width:1400px;margin-inline:auto;
+  padding:0 32px;min-height:72px;
+  display:flex;align-items:center;justify-content:space-between;gap:24px;
+}
+
+.brand{display:inline-flex;align-items:center;gap:10px;font-weight:800;font-size:17px;letter-spacing:-.03em;color:var(--c-text)}
+.brand__mark{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;color:#fff;font-weight:900;font-size:15px;background:var(--grad-main);box-shadow:0 4px 14px rgba(37,99,235,.30)}
+
+.topbar__nav{display:flex;align-items:center;gap:4px;margin-left:auto}
+.topbar__link{position:relative;font-weight:500;font-size:14px;color:var(--c-muted);padding:8px 14px;border-radius:999px;transition:color .2s,background .2s}
+.topbar__link:hover{color:var(--c-text);background:rgba(37,99,235,.06)}
+.topbar__link--active{color:var(--c-primary);background:rgba(37,99,235,.08);font-weight:600}
+.topbar__link--active::after{content:'';position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);width:20px;height:2px;border-radius:999px;background:var(--grad-main)}
+
+.topbar__user{display:flex;align-items:center;gap:10px;padding:7px 14px 7px 7px;border-radius:999px;background:rgba(255,255,255,.72);border:1px solid var(--c-border);cursor:pointer;transition:box-shadow .2s,border-color .2s}
+.topbar__user:hover{box-shadow:var(--shadow-sm);border-color:rgba(37,99,235,.18)}
+.topbar__avatar{width:34px;height:34px;display:grid;place-items:center;border-radius:50%;color:#fff;font-weight:700;font-size:14px;background:var(--grad-main);flex-shrink:0}
+.topbar__username{font-size:13px;font-weight:700;color:var(--c-text);display:block}
+.topbar__role{font-size:11px;color:var(--c-muted);display:block}
+
+/* =====================================================
+   APP BODY
+===================================================== */
+.app-body{
+  display:grid;
+  grid-template-columns:260px 1fr;
+  max-width:1400px;margin-inline:auto;
+  min-height:calc(100vh - 72px);
+  position:relative;z-index:1;
+}
+
+/* =====================================================
+   SIDEBAR
+===================================================== */
+.sidebar{
+  padding:32px 20px;
+  border-right:1px solid var(--c-border);
+  animation:fadeSlideRight .6s .1s ease both;
+}
+@keyframes fadeSlideRight{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:translateX(0)}}
+
+.sidebar__panel{position:sticky;top:92px;display:grid;gap:24px}
+.sidebar__label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--c-muted)}
+.sidebar__nav{display:grid;gap:6px}
+.sidebar__link{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:var(--radius-sm);color:var(--c-muted);font-weight:500;font-size:14px;border:1px solid transparent;transition:background .2s,border-color .2s,color .2s,transform .18s}
+.sidebar__link:hover{color:var(--c-text);background:rgba(37,99,235,.05);border-color:var(--c-border);transform:translateX(3px)}
+.sidebar__link--active{color:var(--c-primary);background:rgba(37,99,235,.08);border-color:rgba(37,99,235,.14);font-weight:600}
+.sidebar__icon{width:10px;height:10px;border-radius:3px;background:var(--grad-main);flex-shrink:0}
+.sidebar__icon--alt{background:linear-gradient(135deg,var(--c-accent),#3b82f6)}
+.sidebar__icon--build{background:linear-gradient(135deg,#10b981,#06b6d4)}
+.sidebar__icon--compare{background:linear-gradient(135deg,#f59e0b,#ef4444)}
+.sidebar__icon--muted{background:linear-gradient(135deg,rgba(15,22,36,.4),rgba(15,22,36,.18))}
+
+.sidebar__stats{padding:18px;border-radius:var(--radius-md);background:#fff;border:1px solid var(--c-border);box-shadow:var(--shadow-sm)}
+.sidebar__stats-label{font-size:12px;color:var(--c-muted);display:block;margin-bottom:6px}
+.sidebar__stats-value{font-size:22px;font-weight:800;background:var(--grad-main);-webkit-background-clip:text;background-clip:text;color:transparent;display:block;margin-bottom:4px}
+.sidebar__stats-desc{font-size:13px;color:var(--c-muted);display:block;line-height:1.5}
+
+/* =====================================================
+   MAIN CONTENT
+===================================================== */
+.main-content{padding:40px;animation:fadeSlideUp .6s .15s ease both}
+@keyframes fadeSlideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* Page header */
+.page-header{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:24px;
+  margin-bottom:36px;
+  padding:32px 36px;
+  border-radius:var(--radius-lg);
+  background:linear-gradient(135deg,rgba(37,99,235,.07) 0%,rgba(6,182,212,.05) 100%);
+  border:1px solid rgba(37,99,235,.12);
+  box-shadow:var(--shadow-sm);
+  position:relative;overflow:hidden;
+}
+.page-header::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(6,182,212,.12) 0%,transparent 70%);pointer-events:none}
+
+.page-header__badge{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.16);font-size:12px;font-weight:600;color:var(--c-primary);margin-bottom:12px}
+.page-header__badge-dot{width:7px;height:7px;border-radius:50%;background:var(--c-accent);box-shadow:0 0 6px var(--c-accent);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.4)}}
+.page-header__title{font-size:clamp(24px,2.5vw,34px);font-weight:800;letter-spacing:-.03em;margin-bottom:8px}
+.page-header__subtitle{font-size:15px;color:var(--c-muted);line-height:1.6}
+
+/* =====================================================
+   PROFILE GRID
+===================================================== */
+.profile-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+.profile-grid--full{grid-column:1/-1}
+
+/* Cards */
+.card{
+  background:#fff;
+  border:1px solid var(--c-border);
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-sm);
+  overflow:hidden;
+  transition:border-color .25s,box-shadow .25s,transform .25s;
+  position:relative;
+}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--grad-main);transform:scaleX(0);transform-origin:left;transition:transform .4s}
+.card:hover{border-color:rgba(37,99,235,.18);box-shadow:var(--shadow-md);transform:translateY(-2px)}
+.card:hover::before{transform:scaleX(1)}
+
+.card__header{display:flex;align-items:center;justify-content:space-between;padding:22px 24px 0}
+.card__header-left{display:flex;align-items:flex-start;gap:14px}
+.card__icon{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;flex-shrink:0}
+.card__icon--blue  {background:rgba(37,99,235,.10);color:var(--c-primary);border:1px solid rgba(37,99,235,.16)}
+.card__icon--cyan  {background:rgba(6,182,212,.10);color:#0891b2;border:1px solid rgba(6,182,212,.16)}
+.card__icon--amber {background:rgba(245,158,11,.10);color:#b45309;border:1px solid rgba(245,158,11,.18)}
+.card__icon--green {background:rgba(16,185,129,.10);color:#047857;border:1px solid rgba(16,185,129,.16)}
+.card__icon--red   {background:rgba(239,68,68,.10);color:var(--c-danger);border:1px solid rgba(239,68,68,.16)}
+.card__title{font-size:16px;font-weight:800;letter-spacing:-.02em;color:var(--c-text);margin-bottom:3px}
+.card__subtitle{font-size:13px;color:var(--c-muted)}
+.card__body{padding:22px 24px 24px}
+
+/* =====================================================
+   PROFILE INFO
+===================================================== */
+.profile-info{display:grid;grid-template-columns:200px 1fr;gap:32px;align-items:start}
+
+.avatar-block{display:flex;flex-direction:column;align-items:center;gap:12px;padding:20px;border-radius:var(--radius-md);background:rgba(37,99,235,.03);border:1px solid var(--c-border);text-align:center}
+.avatar-wrap{position:relative;width:72px;height:72px;margin-bottom:4px}
+.avatar-wrap__img{width:72px;height:72px;border-radius:50%;background:var(--grad-main);display:grid;place-items:center;font-size:26px;font-weight:800;color:#fff;box-shadow:0 4px 16px rgba(37,99,235,.28)}
+.avatar-wrap__badge{position:absolute;bottom:0;right:0;width:24px;height:24px;border-radius:50%;background:var(--c-primary);display:grid;place-items:center;border:2px solid #fff;color:#fff;cursor:pointer;transition:transform .2s}
+.avatar-wrap__badge:hover{transform:scale(1.1)}
+.avatar-wrap__badge svg{width:10px;height:10px}
+.avatar-block__name{font-size:15px;font-weight:700;color:var(--c-text)}
+.avatar-block__role{font-size:12px;color:var(--c-muted)}
+
+/* =====================================================
+   FORM ELEMENTS
+===================================================== */
+.profile-info__fields{display:grid;gap:18px}
+.form-row{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.form-group{display:grid;gap:7px}
+.form-group--full{grid-column:1/-1}
+.form-label{font-size:13px;font-weight:700;color:rgba(15,22,36,.75);display:flex;align-items:center;gap:8px}
+.form-label__badge{font-size:11px;font-weight:600;padding:3px 8px;border-radius:999px;background:rgba(6,182,212,.10);color:#0891b2;border:1px solid rgba(6,182,212,.18)}
+.form-hint{font-size:12px;color:var(--c-muted);line-height:1.5}
+
+.form-input,.form-select{
+  width:100%;padding:11px 14px;
+  border-radius:11px;
+  border:1px solid rgba(37,99,235,.16);
+  background:rgba(240,244,255,.55);
+  color:var(--c-text);font-size:14px;
+  transition:border-color .2s,box-shadow .2s,background .2s;
+}
+.form-input::placeholder{color:rgba(15,22,36,.35)}
+.form-input:focus,.form-select:focus{outline:none;border-color:rgba(37,99,235,.55);background:rgba(255,255,255,.95);box-shadow:0 0 0 4px rgba(37,99,235,.10)}
+.form-input--readonly{background:rgba(15,22,36,.04);color:var(--c-muted);cursor:not-allowed}
+.form-input--readonly:focus{border-color:rgba(37,99,235,.16);box-shadow:none}
+.form-select{cursor:pointer}
+
+.form-divider{height:1px;background:rgba(37,99,235,.08);margin:4px 0}
+.form-footer{padding-top:8px}
+
+/* =====================================================
+   BUTTONS
+===================================================== */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 20px;border-radius:999px;font-family:var(--font);font-weight:700;font-size:14px;border:1px solid transparent;cursor:pointer;transition:transform .18s,box-shadow .18s,background .18s;white-space:nowrap}
+.btn:hover{transform:translateY(-2px)}
+.btn:active{transform:translateY(0)}
+.btn--primary{background:var(--grad-main);color:#fff;box-shadow:0 4px 18px rgba(37,99,235,.28)}
+.btn--primary:hover{box-shadow:0 6px 26px rgba(37,99,235,.40)}
+.btn--outline{background:transparent;color:var(--c-text);border-color:var(--c-border)}
+.btn--outline:hover{border-color:rgba(37,99,235,.22);background:rgba(37,99,235,.04)}
+.btn--danger{background:rgba(239,68,68,.08);color:var(--c-danger);border-color:rgba(239,68,68,.22)}
+.btn--danger:hover{background:rgba(239,68,68,.14);box-shadow:0 4px 16px rgba(239,68,68,.20)}
+.btn--sm{padding:8px 14px;font-size:13px}
+
+/* =====================================================
+   STATS GRID
+===================================================== */
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+
+.stat-card{
+  padding:20px;border-radius:var(--radius-md);
+  background:rgba(37,99,235,.03);border:1px solid var(--c-border);
+  transition:background .2s,border-color .2s,transform .2s;
+}
+.stat-card:hover{background:rgba(37,99,235,.06);border-color:rgba(37,99,235,.18);transform:translateY(-3px)}
+.stat-card__top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.stat-card__icon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center}
+.stat-card__icon--blue {background:rgba(37,99,235,.10);color:var(--c-primary);border:1px solid rgba(37,99,235,.14)}
+.stat-card__icon--cyan {background:rgba(6,182,212,.10);color:#0891b2;border:1px solid rgba(6,182,212,.14)}
+.stat-card__icon--green{background:rgba(16,185,129,.10);color:#047857;border:1px solid rgba(16,185,129,.14)}
+.stat-card__trend{font-size:12px;font-weight:700;padding:4px 8px;border-radius:999px}
+.stat-card__trend--up{background:rgba(16,185,129,.10);color:#047857;border:1px solid rgba(16,185,129,.18)}
+.stat-card__value{font-size:32px;font-weight:800;letter-spacing:-.03em;background:var(--grad-main);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:6px}
+.stat-card__label{font-size:13px;color:var(--c-muted);font-weight:500}
+
+/* =====================================================
+   DANGER ZONE
+===================================================== */
+.danger-card{border-color:rgba(239,68,68,.14)}
+.danger-card:hover{border-color:rgba(239,68,68,.28)}
+.danger-card::before{background:linear-gradient(135deg,#ef4444,#f97316)}
+.danger-body{display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.danger-body__title{font-size:15px;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.danger-body__desc{font-size:14px;color:var(--c-muted);line-height:1.65;max-width:62ch}
+
+/* =====================================================
+   SCROLL REVEAL
+===================================================== */
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.reveal-delay-1{transition-delay:.08s}
+.reveal-delay-2{transition-delay:.16s}
+.reveal-delay-3{transition-delay:.24s}
+.reveal-delay-4{transition-delay:.32s}
+.reveal-delay-5{transition-delay:.40s}
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+@media(max-width:1100px){
+  .app-body{grid-template-columns:1fr}
+  .sidebar{border-right:0;border-bottom:1px solid var(--c-border);padding:20px 32px}
+  .sidebar__panel{position:static}
+  .profile-info{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:820px){
+  .topbar__inner,.main-content{padding-left:20px;padding-right:20px}
+  .topbar__nav{gap:2px}
+  .topbar__link{padding:8px 10px;font-size:13px}
+  .profile-grid{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:1fr}
+  .form-row{grid-template-columns:1fr}
+  .danger-body{flex-direction:column;align-items:flex-start}
+}
+@media(max-width:560px){
+  .topbar__nav{display:none}
+  .page-header{padding:24px}
+}
+</style>
+</head>
+
+<body>
+<a class="skip-link" href="#main-content">Skip to main content</a>
+
+<div class="app-shell">
+
+  <!-- TOPBAR -->
+  <header class="topbar" id="topbar">
+    <div class="topbar__inner">
+      <a class="brand" href="/"><span class="brand__mark">C</span><span>ClickCV</span></a>
+
+      <nav class="topbar__nav" aria-label="Primary navigation">
+        <a class="topbar__link" href="/dashboard">Analyse CV</a>
+        <a class="topbar__link" href="/build-cv">Build CV</a>
+        <a class="topbar__link" href="/compare-cv">Compare CV</a>
+        <a class="topbar__link" href="#history">History</a>
+        <a class="topbar__link topbar__link--active" href="/profile" aria-current="page">Profile</a>
+      </nav>
+
+      <div class="topbar__user" aria-label="Signed in as Ahmed">
+        <div class="topbar__avatar">A</div>
+        <div>
+          <span class="topbar__username">Ahmed</span>
+          <span class="topbar__role">ClickCV User</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- APP BODY -->
+  <div class="app-body">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" aria-label="Dashboard sidebar">
+      <div class="sidebar__panel">
+        <p class="sidebar__label">Workspace</p>
+        <nav class="sidebar__nav">
+          <a class="sidebar__link" href="/dashboard"><span class="sidebar__icon"></span><span>Analyze New CV</span></a>
+          <a class="sidebar__link" href="/build-cv"><span class="sidebar__icon sidebar__icon--build"></span><span>Build CV</span></a>
+          <a class="sidebar__link" href="/compare-cv"><span class="sidebar__icon sidebar__icon--compare"></span><span>Compare CV</span></a>
+          <a class="sidebar__link" href="#reports"><span class="sidebar__icon sidebar__icon--alt"></span><span>View Previous Reports</span></a>
+          <a class="sidebar__link sidebar__link--active" href="/profile"><span class="sidebar__icon sidebar__icon--muted"></span><span>Profile Settings</span></a>
+        </nav>
+        <div class="sidebar__stats">
+          <span class="sidebar__stats-label">This month</span>
+          <span class="sidebar__stats-value">12 analyses</span>
+          <span class="sidebar__stats-desc">Your average CV score improved by 8%.</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main id="main-content" class="main-content" role="main">
+
+      <!-- Page header -->
+      <header class="page-header">
+        <div>
+          <div class="page-header__badge">
+            <span class="page-header__badge-dot"></span>
+            Account settings
+          </div>
+          <h1 class="page-header__title">Profile Settings</h1>
+          <p class="page-header__subtitle">Manage your account information, preferences, and security.</p>
+        </div>
+      </header>
+
+      <!-- Grid -->
+      <div class="profile-grid">
+
+        <!-- ACCOUNT INFO -->
+        <section class="card profile-grid--full reveal" aria-labelledby="section-account">
+          <div class="card__header">
+            <div class="card__header-left">
+              <div class="card__icon card__icon--blue">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </div>
+              <div>
+                <h2 class="card__title" id="section-account">Account Information</h2>
+                <p class="card__subtitle">Update your name, email, and profile photo.</p>
+              </div>
+            </div>
+          </div>
+          <div class="card__body">
+            <div class="profile-info">
+              <div class="avatar-block">
+                <div class="avatar-wrap">
+                  <div class="avatar-wrap__img">A</div>
+                  <div class="avatar-wrap__badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                  </div>
+                </div>
+                <p class="avatar-block__name">Ahmed Al-Rashid</p>
+                <p class="avatar-block__role">ClickCV User</p>
+                <button class="btn btn--outline btn--sm" type="button">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+                  Upload photo
+                </button>
+              </div>
+
+              <div class="profile-info__fields">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label" for="first-name">First Name</label>
+                    <input class="form-input" id="first-name" type="text" name="first_name" value="Ahmed" placeholder="First name" autocomplete="given-name"/>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="last-name">Last Name</label>
+                    <input class="form-input" id="last-name" type="text" name="last_name" value="Al-Rashid" placeholder="Last name" autocomplete="family-name"/>
+                  </div>
+                </div>
+
+                <div class="form-group form-group--full">
+                  <label class="form-label" for="email">Email Address <span class="form-label__badge">Google account</span></label>
+                  <input class="form-input form-input--readonly" id="email" type="email" name="email" value="ahmed@gmail.com" readonly aria-describedby="email-hint"/>
+                  <span class="form-hint" id="email-hint">Email is managed by your Google account and cannot be changed here.</span>
+                </div>
+
+                <div class="form-footer">
+                  <button class="btn btn--primary" type="button">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                    Save Changes
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PREFERENCES -->
+        <section class="card reveal reveal-delay-1" aria-labelledby="section-preferences">
+          <div class="card__header">
+            <div class="card__header-left">
+              <div class="card__icon card__icon--cyan">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+              </div>
+              <div>
+                <h2 class="card__title" id="section-preferences">Preferences</h2>
+                <p class="card__subtitle">Customise your CV standard and job focus.</p>
+              </div>
+            </div>
+          </div>
+          <div class="card__body">
+            <div class="form-group">
+              <label class="form-label" for="cv-standard">Default CV Standard</label>
+              <select class="form-select" id="cv-standard" name="cv_standard">
+                <option value="usa">🇺🇸 USA</option>
+                <option value="uk">🇬🇧 UK</option>
+                <option value="malaysia" selected>🇲🇾 Malaysia</option>
+                <option value="australia">🇦🇺 Australia</option>
+                <option value="canada">🇨🇦 Canada</option>
+                <option value="eu">🇪🇺 European Union</option>
+              </select>
+              <span class="form-hint">Sets the formatting and conventions used during CV analysis.</span>
+            </div>
+            <div class="form-divider"></div>
+            <div class="form-group">
+              <label class="form-label" for="job-field">Preferred Job Field</label>
+              <select class="form-select" id="job-field" name="job_field">
+                <option value="software-engineering" selected>Software Engineering</option>
+                <option value="data-science">Data Science</option>
+                <option value="product-management">Product Management</option>
+                <option value="devops">DevOps / Cloud Engineering</option>
+                <option value="ux-design">UX / UI Design</option>
+                <option value="marketing">Marketing</option>
+                <option value="finance">Finance &amp; Accounting</option>
+                <option value="hr">Human Resources</option>
+              </select>
+              <span class="form-hint">Used to tailor skill-gap and keyword recommendations.</span>
+            </div>
+            <div class="form-footer">
+              <button class="btn btn--primary" type="button">Save Preferences</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECURITY -->
+        <section class="card reveal reveal-delay-2" aria-labelledby="section-security">
+          <div class="card__header">
+            <div class="card__header-left">
+              <div class="card__icon card__icon--amber">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </div>
+              <div>
+                <h2 class="card__title" id="section-security">Security</h2>
+                <p class="card__subtitle">Update your password to keep your account safe.</p>
+              </div>
+            </div>
+          </div>
+          <div class="card__body">
+            <div class="form-group">
+              <label class="form-label" for="current-password">Current Password</label>
+              <input class="form-input" id="current-password" type="password" name="current_password" placeholder="Enter current password" autocomplete="current-password"/>
+            </div>
+            <div class="form-divider"></div>
+            <div class="form-group">
+              <label class="form-label" for="new-password">New Password</label>
+              <input class="form-input" id="new-password" type="password" name="new_password" placeholder="Minimum 8 characters" autocomplete="new-password" aria-describedby="new-password-hint"/>
+              <span class="form-hint" id="new-password-hint">Use at least 8 characters, including uppercase, numbers, and symbols.</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="confirm-password">Confirm New Password</label>
+              <input class="form-input" id="confirm-password" type="password" name="confirm_password" placeholder="Re-enter new password" autocomplete="new-password"/>
+            </div>
+            <div class="form-footer">
+              <button class="btn btn--primary" type="button">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Update Password
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- STATS -->
+        <section class="card profile-grid--full reveal reveal-delay-3" aria-labelledby="section-stats">
+          <div class="card__header">
+            <div class="card__header-left">
+              <div class="card__icon card__icon--green">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+              </div>
+              <div>
+                <h2 class="card__title" id="section-stats">Account Statistics</h2>
+                <p class="card__subtitle">A snapshot of your activity on ClickCV.</p>
+              </div>
+            </div>
+          </div>
+          <div class="card__body">
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-card__top">
+                  <div class="stat-card__icon stat-card__icon--blue"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+                  <span class="stat-card__trend stat-card__trend--up">↑ 12%</span>
+                </div>
+                <div class="stat-card__value">47</div>
+                <div class="stat-card__label">Total CV Analyses</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-card__top">
+                  <div class="stat-card__icon stat-card__icon--cyan"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg></div>
+                  <span class="stat-card__trend stat-card__trend--up">↑ 8%</span>
+                </div>
+                <div class="stat-card__value">78<span style="font-size:14px;font-weight:600;color:var(--c-muted)">/100</span></div>
+                <div class="stat-card__label">Average CV Score</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-card__top">
+                  <div class="stat-card__icon stat-card__icon--green"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+                </div>
+                <div class="stat-card__value" style="font-size:24px">Mar 6</div>
+                <div class="stat-card__label">Last Analysis Date</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- DANGER ZONE -->
+        <section class="card danger-card profile-grid--full reveal reveal-delay-4" aria-labelledby="section-danger">
+          <div class="card__header">
+            <div class="card__header-left">
+              <div class="card__icon card__icon--red">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              </div>
+              <div>
+                <h2 class="card__title" id="section-danger">Danger Zone</h2>
+                <p class="card__subtitle">Irreversible actions — proceed with caution.</p>
+              </div>
+            </div>
+          </div>
+          <div class="card__body">
+            <div class="danger-body">
+              <div class="danger-body__info">
+                <p class="danger-body__title">Delete Account</p>
+                <p class="danger-body__desc">Permanently delete your ClickCV account and all associated data including CV analyses, reports, and preferences. This action cannot be undone and your data cannot be recovered.</p>
+              </div>
+              <button class="btn btn--danger" type="button">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                Delete Account
+              </button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+const topbar = document.getElementById('topbar');
+window.addEventListener('scroll', () => topbar.classList.toggle('scrolled', window.scrollY > 10));
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); observer.unobserve(e.target); } });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
