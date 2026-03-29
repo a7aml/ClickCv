@@ -256,7 +256,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (googleBtn) googleBtn.addEventListener('click', handleGoogleLogin);
     }
 
-    if (path.includes('dashboard')) {
+    if (path.includes('dashboard') || path.includes('profile')) {
         handleTokenFromURL();
     }
 

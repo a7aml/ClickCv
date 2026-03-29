@@ -1,3 +1,6 @@
+import sys
+print("Python executable:", sys.executable)
+
 from app import create_app
 
 app = create_app()

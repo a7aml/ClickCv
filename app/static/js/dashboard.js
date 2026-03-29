@@ -1,218 +1,351 @@
 /* ==========================================================
-   TechCV Dashboard – Upload CV
-   dashboard.js
-   Handles: drag-and-drop, file picker, file list render,
-            remove, clear-all, and analyse button.
-========================================================== */
+   dashboard.js  — v2
 
+   Changes:
+   1. File displays INSIDE the drop zone — no overflow below grid
+   2. window.showScanAnimation() — "Neural Document Scan" overlay
+      Called by dashboard.analyse.js instead of spinner button
+   3. window.cvFiles shared state — unchanged API
+========================================================== */
 (function () {
   'use strict';
 
-  /* ── DOM references ── */
   const dropZone    = document.getElementById('drop-zone');
   const fileInput   = document.getElementById('file-input');
-  const fileList    = document.getElementById('file-list');
-  const fileListSec = document.getElementById('file-list-section');
-  const fileCount   = document.getElementById('file-count');
   const analyseCta  = document.getElementById('analyse-cta');
   const ctaDesc     = document.getElementById('cta-desc');
   const clearAllBtn = document.getElementById('clear-all-btn');
-  const analyseBtn  = document.getElementById('analyse-btn');
+  const jdTextarea  = document.getElementById('jd-textarea');
+  const charCountEl = document.getElementById('char-count');
+  const MAX_CHARS   = 8000;
 
-  /* ── State ── */
-  let files = []; // Array of { id: number, file: File }
+  window.cvFiles = [];
 
-  /* ── Open file picker on click or keyboard ── */
-  dropZone.addEventListener('click', () => fileInput.click());
+  /* ── Helpers ── */
+  const getExt    = n => n.split('.').pop().toLowerCase();
+  const fmtBytes  = b => b < 1024 ? b+' B' : b < 1048576
+                        ? (b/1024).toFixed(1)+' KB'
+                        : (b/1048576).toFixed(1)+' MB';
 
-  dropZone.addEventListener('keydown', e => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      fileInput.click();
+  /* Save original empty state */
+  const EMPTY_HTML = dropZone.innerHTML;
+
+  /* ══════════════════════════════════════
+     DROP ZONE RENDERING
+  ══════════════════════════════════════ */
+  function renderDropZone() {
+    if (!window.cvFiles.length) {
+      dropZone.innerHTML = EMPTY_HTML;
+      dropZone.classList.remove('dz--filled');
+      attachEmptyHandlers();
+    } else {
+      const { file } = window.cvFiles[0];
+      const ext      = getExt(file.name);
+      const isPdf    = ext === 'pdf';
+      const accent   = isPdf ? '#B91C1C' : '#1D4ED8';
+      const accentBg = isPdf ? 'rgba(185,28,28,.09)' : 'rgba(29,78,216,.09)';
+
+      dropZone.classList.add('dz--filled');
+      dropZone.innerHTML = `
+        <div class="dz-card">
+          <div class="dz-card__icon" style="background:${accentBg};border-color:${accent}30">
+            <svg width="32" height="40" viewBox="0 0 32 40" fill="none">
+              <rect x=".75" y=".75" width="30.5" height="38.5" rx="3.25"
+                fill="${accentBg}" stroke="${accent}" stroke-width="1.5"/>
+              <path d="M20 .75v9.5h11.25" stroke="${accent}" stroke-width="1.5" fill="none"/>
+              <rect class="dz-scan-line" x="4" y="15" width="24" height="2.5"
+                rx="1.25" fill="${accent}" opacity=".55"/>
+              <rect x="4" y="21" width="18" height="1.8" rx=".9"
+                fill="${accent}" opacity=".2"/>
+              <rect x="4" y="25" width="22" height="1.8" rx=".9"
+                fill="${accent}" opacity=".2"/>
+              <rect x="4" y="29" width="14" height="1.8" rx=".9"
+                fill="${accent}" opacity=".2"/>
+            </svg>
+            <span class="dz-card__badge" style="background:${accent}">${ext.toUpperCase()}</span>
+          </div>
+
+          <div class="dz-card__body">
+            <p class="dz-card__name" title="${file.name}">${file.name}</p>
+            <p class="dz-card__meta">${fmtBytes(file.size)} · ${ext.toUpperCase()}</p>
+            <div class="dz-card__status">
+              <span class="dz-card__dot"></span>Ready for analysis
+            </div>
+          </div>
+
+          <div class="dz-card__actions">
+            <button class="dz-btn dz-btn--replace" id="dz-replace">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2.3"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/>
+                <path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/>
+              </svg>
+              Replace
+            </button>
+            <button class="dz-btn dz-btn--remove" id="dz-remove" aria-label="Remove">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2.3"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6"  y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="dz-card__check">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                 stroke="#059669" stroke-width="3"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+        </div>`;
+
+      document.getElementById('dz-replace').onclick = e => {
+        e.stopPropagation(); fileInput.click();
+      };
+      document.getElementById('dz-remove').onclick = e => {
+        e.stopPropagation();
+        window.cvFiles = [];
+        renderDropZone();
+      };
     }
-  });
+    syncCta();
+  }
 
-  fileInput.addEventListener('change', () => {
-    handleFiles(Array.from(fileInput.files));
-    fileInput.value = ''; // reset so same file can be re-added
-  });
-
-  /* ── Drag-and-drop events ── */
-  ['dragenter', 'dragover'].forEach(evt =>
-    dropZone.addEventListener(evt, e => {
-      e.preventDefault();
-      dropZone.classList.add('drag-over');
-    })
-  );
-
-  ['dragleave', 'dragend', 'drop'].forEach(evt =>
-    dropZone.addEventListener(evt, e => {
+  function attachEmptyHandlers() {
+    dropZone.addEventListener('click',    () => fileInput.click(), { once: true });
+    dropZone.addEventListener('keydown',  e => { if (e.key==='Enter'||e.key===' ') fileInput.click(); }, { once: true });
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave',() => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', e => {
       e.preventDefault();
       dropZone.classList.remove('drag-over');
-    })
-  );
+      ingestFiles(e.dataTransfer.files);
+    }, { once: true });
+  }
 
-  dropZone.addEventListener('drop', e => {
-    const dropped = Array.from(e.dataTransfer.files);
-    handleFiles(dropped);
+  function ingestFiles(list) {
+    Array.from(list).forEach(f => {
+      if (['pdf','doc','docx'].includes(getExt(f.name)))
+        window.cvFiles = [{ id: Date.now(), file: f }];
+    });
+    renderDropZone();
+  }
+
+  function syncCta() {
+    const has = window.cvFiles.length > 0;
+    analyseCta.classList.toggle('visible', has);
+    if (ctaDesc && has)
+      ctaDesc.textContent = window.cvFiles[0].file.name + ' — ready for AI analysis.';
+  }
+
+  fileInput.addEventListener('change', () => {
+    ingestFiles(fileInput.files); fileInput.value = '';
   });
 
-  /* ── File handling helpers ── */
+  if (clearAllBtn) clearAllBtn.onclick = () => {
+    window.cvFiles = []; renderDropZone();
+  };
 
-  /**
-   * Add valid files to the queue and re-render.
-   * @param {File[]} newFiles
-   */
-  function handleFiles(newFiles) {
-    newFiles.forEach(f => {
-      if (!isAccepted(f)) return;
-      files.push({ id: Date.now() + Math.random(), file: f });
+  /* JD counter */
+  if (jdTextarea && charCountEl) {
+    jdTextarea.addEventListener('input', () => {
+      const n = jdTextarea.value.length;
+      charCountEl.textContent = `${n.toLocaleString()} / ${MAX_CHARS.toLocaleString()}`;
+      charCountEl.classList.toggle('char-count--warn',  n > MAX_CHARS * .85);
+      charCountEl.classList.toggle('char-count--limit', n >= MAX_CHARS);
+      jdTextarea.classList.toggle('is-filled', n > 0);
     });
-    render();
   }
 
-  /**
-   * Returns true if the file extension is accepted.
-   * @param {File} f
-   * @returns {boolean}
-   */
-  function isAccepted(f) {
-    const ext = getExt(f.name);
-    return ['pdf', 'doc', 'docx', 'csv'].includes(ext);
+  /* Topbar scroll */
+  const topbar   = document.getElementById('topbar');
+  const dashMain = document.querySelector('.dashboard');
+  if (dashMain && topbar)
+    dashMain.addEventListener('scroll', () =>
+      topbar.classList.toggle('scrolled', dashMain.scrollTop > 8));
+
+  /* Scroll reveal */
+  if (dashMain) {
+    const obs = new IntersectionObserver(entries => entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }
+    }), { root: dashMain, threshold: .08 });
+    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
   }
 
-  /**
-   * Format a byte count as a human-readable string.
-   * @param {number} bytes
-   * @returns {string}
-   */
-  function formatBytes(bytes) {
-    if (bytes < 1024)           return bytes + ' B';
-    if (bytes < 1024 * 1024)    return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-  }
+  /* ══════════════════════════════════════
+     NEURAL DOCUMENT SCAN ANIMATION
+     
+     Concept: The CV gets "disassembled" into
+     a floating 3D blueprint, scanned by a laser
+     that reveals glowing data nodes connected by
+     circuit traces — then implodes into the score.
 
-  /**
-   * Extract the lowercase extension from a filename.
-   * @param {string} name
-   * @returns {string}
-   */
-  function getExt(name) {
-    return name.split('.').pop().toLowerCase();
-  }
+     Triggered by dashboard.analyse.js via
+     window.showScanAnimation().
+     Returns { finish(), error() } control object.
+  ══════════════════════════════════════ */
+  window.showScanAnimation = function () {
+    document.getElementById('scan-overlay')?.remove();
 
-  /**
-   * Return the BEM modifier class for the file-type icon.
-   * @param {string} ext
-   * @returns {string}
-   */
-  function iconClass(ext) {
-    if (ext === 'pdf')                    return 'file-item__icon--pdf';
-    if (ext === 'docx' || ext === 'doc') return 'file-item__icon--docx';
-    if (ext === 'csv')                    return 'file-item__icon--csv';
-    return 'file-item__icon--other';
-  }
+    const o = document.createElement('div');
+    o.id = 'scan-overlay';
+    o.innerHTML = `
+      <!-- Starfield particles -->
+      <canvas id="scan-canvas"></canvas>
 
-  /**
-   * Return the short text label displayed inside the icon badge.
-   * @param {string} ext
-   * @returns {string}
-   */
-  function iconLabel(ext) {
-    if (ext === 'pdf')                    return 'PDF';
-    if (ext === 'docx' || ext === 'doc') return 'DOC';
-    if (ext === 'csv')                    return 'CSV';
-    return ext.toUpperCase().slice(0, 3);
-  }
+      <!-- Central scanner panel -->
+      <div class="scan-panel" id="scan-panel">
 
-  /* ── Render file list ── */
-  function render() {
-    fileList.innerHTML = '';
-
-    files.forEach(({ id, file }) => {
-      const ext  = getExt(file.name);
-      const item = document.createElement('div');
-      item.className = 'file-item';
-      item.setAttribute('role', 'listitem');
-      item.setAttribute('data-id', id);
-
-      item.innerHTML = `
-        <div class="file-item__icon ${iconClass(ext)}" aria-hidden="true">${iconLabel(ext)}</div>
-        <div class="file-item__info">
-          <p class="file-item__name" title="${file.name}">${file.name}</p>
-          <p class="file-item__meta">${formatBytes(file.size)} &middot; ${ext.toUpperCase()}</p>
+        <!-- Document ghost -->
+        <div class="scan-ghost">
+          <div class="sg-corner sg-tl"></div>
+          <div class="sg-corner sg-tr"></div>
+          <div class="sg-corner sg-bl"></div>
+          <div class="sg-corner sg-br"></div>
+          <div class="sg-lines">
+            ${Array.from({length:13}, (_,i) =>
+              `<div class="sg-line" style="--i:${i};width:${50+Math.random()*45}%"></div>`
+            ).join('')}
+          </div>
+          <!-- The laser beam -->
+          <div class="scan-beam" id="scan-beam"></div>
         </div>
-        <span class="file-item__status file-item__status--ready">
-          <span class="file-item__status__dot" aria-hidden="true"></span>Ready
-        </span>
-        <button
-          class="file-item__remove"
-          aria-label="Remove ${file.name}"
-          data-remove="${id}"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2.2"
-               stroke-linecap="round" stroke-linejoin="round"
-               aria-hidden="true">
-            <line x1="18" y1="6"  x2="6"  y2="18"/>
-            <line x1="6"  y1="6"  x2="18" y2="18"/>
+
+        <!-- Criteria nodes (appear post-scan) -->
+        <div class="scan-criteria" id="scan-criteria">
+          ${[
+            {k:'KW', label:'Keywords',   x:12, y:20, c:'#2563EB'},
+            {k:'FT', label:'Formatting', x:78, y:28, c:'#06B6D4'},
+            {k:'SC', label:'Sections',   x:8,  y:55, c:'#8B5CF6'},
+            {k:'EX', label:'Experience', x:80, y:58, c:'#F59E0B'},
+            {k:'ED', label:'Education',  x:28, y:80, c:'#10B981'},
+            {k:'AC', label:'Achieve.',   x:68, y:80, c:'#EF4444'},
+          ].map(n => `
+            <div class="sc-node" style="left:${n.x}%;top:${n.y}%;--nc:${n.c}" data-label="${n.label}">
+              <span>${n.k}</span>
+            </div>`).join('')}
+          <svg class="sc-lines-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <line x1="12" y1="20" x2="78" y2="28" class="sc-edge"/>
+            <line x1="78" y1="28" x2="80" y2="58" class="sc-edge"/>
+            <line x1="8"  y1="55" x2="68" y2="80" class="sc-edge"/>
+            <line x1="28" y1="80" x2="80" y2="58" class="sc-edge"/>
+            <line x1="12" y1="20" x2="8"  y2="55" class="sc-edge"/>
+            <line x1="78" y1="28" x2="68" y2="80" class="sc-edge"/>
+            <line x1="8"  y1="55" x2="28" y2="80" class="sc-edge"/>
           </svg>
-        </button>
-      `;
+        </div>
+      </div>
 
-      fileList.appendChild(item);
-    });
+      <!-- Status -->
+      <div class="scan-status-row">
+        <div class="scan-pulse-ring"></div>
+        <span class="scan-status-text" id="scan-msg">Initialising neural scan...</span>
+      </div>
 
-    /* Update count badge & visibility */
-    const count = files.length;
-    fileCount.textContent = count;
-    fileListSec.classList.toggle('visible', count > 0);
-    analyseCta.classList.toggle('visible', count > 0);
-    ctaDesc.textContent = count === 1
-      ? '1 file queued and ready for AI analysis.'
-      : `${count} files queued and ready for AI analysis.`;
-  }
+      <!-- Progress -->
+      <div class="scan-track">
+        <div class="scan-fill" id="scan-fill"></div>
+        <div class="scan-fill-glow" id="scan-fill-glow"></div>
+      </div>`;
 
-  /* ── Remove individual file ── */
-  fileList.addEventListener('click', e => {
-    const btn = e.target.closest('[data-remove]');
-    if (!btn) return;
-    const id = parseFloat(btn.dataset.remove);
-    files = files.filter(f => f.id !== id);
-    render();
-  });
+    document.body.appendChild(o);
+    requestAnimationFrame(() => o.classList.add('scan-visible'));
 
-  /* ── Clear all files ── */
-  clearAllBtn.addEventListener('click', () => {
-    files = [];
-    render();
-  });
+    /* ── Particle canvas ── */
+    const canvas = document.getElementById('scan-canvas');
+    const ctx    = canvas.getContext('2d');
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
 
-  /* ── Analyse button (wire to your backend here) ── */
-  analyseBtn.addEventListener('click', () => {
-    if (!files.length) return;
+    const particles = Array.from({length: 60}, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 1.5 + .3,
+      vx: (Math.random() - .5) * .4,
+      vy: (Math.random() - .5) * .4,
+      a: Math.random() * .5 + .1,
+    }));
 
-    analyseBtn.textContent = 'Analysing…';
-    analyseBtn.disabled = true;
+    let animId;
+    function drawParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0) p.x = canvas.width;
+        if (p.x > canvas.width) p.x = 0;
+        if (p.y < 0) p.y = canvas.height;
+        if (p.y > canvas.height) p.y = 0;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+        ctx.fillStyle = `rgba(99,179,237,${p.a})`;
+        ctx.fill();
+      });
+      animId = requestAnimationFrame(drawParticles);
+    }
+    drawParticles();
 
-    // TODO: Replace this timeout with a real fetch() / API call
+    /* ── Progress & messages ── */
+    const msgs = [
+      {t:'Extracting document structure...',  p:10},
+      {t:'Running NLP section detection...',  p:24},
+      {t:'Scoring keyword density...',        p:38},
+      {t:'Analysing ATS compatibility...',    p:52},
+      {t:'Detecting formatting issues...',    p:65},
+      {t:'Measuring achievement impact...',   p:76},
+      {t:'Generating AI recommendations...', p:87},
+      {t:'Compiling your report...',          p:95},
+    ];
+
+    const msgEl  = document.getElementById('scan-msg');
+    const fillEl = document.getElementById('scan-fill');
+    const glowEl = document.getElementById('scan-fill-glow');
+
+    let mi = 0;
+    const tick = setInterval(() => {
+      if (mi >= msgs.length) { clearInterval(tick); return; }
+      const m = msgs[mi++];
+      msgEl.style.opacity = '0';
+      setTimeout(() => { msgEl.textContent = m.t; msgEl.style.opacity = '1'; }, 180);
+      fillEl.style.width = m.p + '%';
+      glowEl.style.width = m.p + '%';
+    }, 700);
+
+    /* Reveal nodes after beam sweep (1.6s) */
     setTimeout(() => {
-      alert(
-        `Analysis started for ${files.length} file(s)!\n` +
-        '(Connect your backend to process the results.)'
-      );
+      document.getElementById('scan-criteria')?.classList.add('sc-visible');
+    }, 1600);
 
-      analyseBtn.innerHTML = `
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round"
-             aria-hidden="true">
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02
-                           12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-        </svg>
-        Analyse CV
-      `;
-      analyseBtn.disabled = false;
-    }, 1800);
-  });
+    return {
+      finish() {
+        clearInterval(tick);
+        cancelAnimationFrame(animId);
+        fillEl.style.width  = '100%';
+        glowEl.style.width  = '100%';
+        msgEl.textContent   = '✓ Analysis complete';
+        o.classList.add('scan-success');
+        setTimeout(() => {
+          o.style.opacity = '0';
+          o.style.transform = 'scale(1.04)';
+          setTimeout(() => o.remove(), 550);
+        }, 380);
+      },
+      error(msg) {
+        clearInterval(tick);
+        cancelAnimationFrame(animId);
+        o.classList.add('scan-error');
+        msgEl.textContent = msg || 'Analysis failed. Please try again.';
+        setTimeout(() => {
+          o.style.opacity = '0';
+          setTimeout(() => o.remove(), 500);
+        }, 2200);
+      }
+    };
+  };
+
+  /* ── Boot ── */
+  renderDropZone();
+
 })();
