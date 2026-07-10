@@ -1,0 +1,21 @@
+name: ClickCV CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Build Docker image
+        run: docker build -t clickcv-web:latest .
+
+      - name: Verify image exists
+        run: docker images | grep clickcv
