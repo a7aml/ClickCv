@@ -33,16 +33,13 @@ from difflib import SequenceMatcher
 from keybert import KeyBERT
 
 
-# ── Lazy-load KeyBERT ─────────────────────────────────────────────────────────
-_kw_model = None
+# ── Get shared KeyBERT model ──────────────────────────────────────────────────
+from app.services.model_loader import get_keybert_model
 
 
 def _get_kw_model() -> KeyBERT:
-    global _kw_model
-    if _kw_model is None:
-        _kw_model = KeyBERT()
-    return _kw_model
-
+    """Get the shared KeyBERT model instance (pre-loaded at startup)."""
+    return get_keybert_model()
 
 # ── Section keyword map ───────────────────────────────────────────────────────
 # Extended with additional common variants to reduce fuzzy matching load.

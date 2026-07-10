@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>MyCV — Compare CVs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}"/>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/compare.css') }}"/>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/compare2.css') }}"/>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/compare3.css') }}"/>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/chatbot.css') }}"/>
+
+<style>
+:root {
+  --c-bg:      #F0F4FF;
+  --c-surface: #ffffff;
+  --c-border:  rgba(37,99,235,0.10);
+  --c-text:    #0f1624;
+  --c-muted:   rgba(15,22,36,0.55);
+  --c-primary: #2563EB;
+  --c-accent:  #06B6D4;
+  --c-danger:  #ef4444;
+  --grad-main: linear-gradient(135deg,#2563EB 0%,#06B6D4 100%);
+  --grad-bg:   linear-gradient(160deg,#EEF2FF 0%,#E0F2FE 50%,#F0FDF4 100%);
+  --shadow-sm: 0 2px 12px rgba(37,99,235,0.08);
+  --shadow-md: 0 8px 32px rgba(37,99,235,0.12);
+  --radius-sm: 10px; --radius-md:16px; --radius-lg:20px;
+  --font:'Plus Jakarta Sans',sans-serif;
+  --color-border:var(--c-border);--color-text:var(--c-text);
+  --color-white:#fff;--color-background:var(--c-bg);
+  --color-muted:var(--c-muted);--color-primary:var(--c-primary);
+  --color-accent:var(--c-accent);--color-danger:var(--c-danger);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;height:100%}
+body{font-family:var(--font);background:var(--c-bg);color:var(--c-text);height:100%;overflow:hidden;}
+a{color:inherit;text-decoration:none}
+ul,ol{list-style:none}
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;
+  background:
+    radial-gradient(ellipse 70% 55% at 5% 0%,rgba(37,99,235,0.10) 0%,transparent 65%),
+    radial-gradient(ellipse 55% 50% at 95% 15%,rgba(6,182,212,0.09) 0%,transparent 60%),
+    radial-gradient(ellipse 65% 55% at 50% 65%,rgba(37,99,235,0.06) 0%,transparent 65%),
+    var(--grad-bg);
+  pointer-events:none;
+}
+.app-shell{height:100vh;display:flex;flex-direction:column;position:relative;z-index:1;}
+.topbar{flex-shrink:0;height:58px;background:rgba(240,244,255,0.88);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid var(--c-border);transition:background .3s,box-shadow .3s;z-index:200;}
+.topbar.scrolled{background:rgba(255,255,255,0.94);box-shadow:var(--shadow-sm)}
+.topbar__inner{max-width:1400px;margin-inline:auto;padding:0 28px;height:100%;display:flex;align-items:center;justify-content:space-between;gap:20px;}
+.brand{display:inline-flex;align-items:center;gap:9px;font-weight:800;font-size:16px;letter-spacing:-.03em;color:var(--c-text)}
+.brand__mark{width:32px;height:32px;display:grid;place-items:center;border-radius:9px;color:#fff;font-weight:900;font-size:14px;background:var(--grad-main);box-shadow:0 4px 12px rgba(37,99,235,.28)}
+.topbar__nav{display:flex;align-items:center;gap:2px;margin-left:auto}
+.topbar__link{position:relative;font-weight:500;font-size:13.5px;color:var(--c-muted);padding:6px 12px;border-radius:999px;transition:color .2s,background .2s}
+.topbar__link:hover{color:var(--c-text);background:rgba(37,99,235,.06)}
+.topbar__link--active{color:var(--c-primary);background:rgba(37,99,235,.08);font-weight:600}
+.topbar__link--active::after{content:'';position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);width:16px;height:2px;border-radius:999px;background:var(--grad-main)}
+.topbar__user{display:flex;align-items:center;gap:9px;padding:5px 12px 5px 5px;border-radius:999px;background:rgba(255,255,255,.72);border:1px solid var(--c-border);cursor:pointer;transition:box-shadow .2s,border-color .2s}
+.topbar__user:hover{box-shadow:var(--shadow-sm);border-color:rgba(37,99,235,.18)}
+.avatar{width:30px;height:30px;display:grid;place-items:center;border-radius:50%;color:#fff;font-weight:700;font-size:13px;background:var(--grad-main);flex-shrink:0;}
+.topbar__username{font-size:12.5px;font-weight:700;color:var(--c-text)}
+.topbar__role{font-size:10.5px;color:var(--c-muted)}
+.layout{display:block !important;flex:1;height:calc(100vh - 58px);overflow:hidden;}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:8px 16px;border-radius:999px;font-family:var(--font);font-weight:600;font-size:13px;border:1px solid transparent;cursor:pointer;transition:transform .18s,box-shadow .18s,background .18s;white-space:nowrap;}
+.btn:hover{transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn--primary{background:var(--grad-main);color:#fff;box-shadow:0 4px 14px rgba(37,99,235,.28)}
+.btn--primary:hover{box-shadow:0 6px 20px rgba(37,99,235,.38)}
+.btn--secondary{background:rgba(37,99,235,.07);color:var(--c-primary);border-color:rgba(37,99,235,.18)}
+.btn--secondary:hover{background:rgba(37,99,235,.12)}
+.btn--ghost{background:#fff;color:var(--c-text);border-color:var(--c-border)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">Skip to content</a>
+
+<div class="app-shell">
+
+  <!-- TOPBAR -->
+  <header class="topbar" id="topbar">
+    <div class="topbar__inner">
+      <a class="brand" href="/">
+        <span class="brand__mark">C</span>
+        <span class="brand__name">MyCV</span>
+      </a>
+      <nav class="topbar__nav" aria-label="Primary navigation">
+      <a class="topbar__link " href="/build-cv">Build CV</a>
+        <a class="topbar__link "  href="/rebuild">Rebuild CV</a>
+        <a class="topbar__link topbar__link--active" href="/compare-cv">Compare CV</a>
+        <a class="topbar__link " href="/dashboard">Analyse CV</a>
+        <a class="topbar__link " href="/cover-letter">Cover Letter</a>
+        <a class="topbar__link"  href="/find-job">Find Job</a>
+        <a class="topbar__link" href="/history">History</a>
+        <a class="topbar__link" href="/profile">Profile</a>
+      </nav>
+
+      <button class="btn--logout" id="logout-btn" type="button" aria-label="Logout">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+    <polyline points="16 17 21 12 16 7"/>
+    <line x1="21" y1="12" x2="9" y2="12"/>
+  </svg>
+  <span>Logout</span>
+</button>
+     
+  </header>
+
+  <div class="layout cmp-layout">
+    <main id="main-content" class="cmp-main" role="main">
+
+      <!-- ══════════════════════════
+           UPLOAD PHASE
+      ══════════════════════════ -->
+      <div id="cmp-upload-phase">
+
+        <!-- Page header -->
+        <div class="cmp-page-header">
+          <div>
+            <span class="cmp-eyebrow">
+              <span class="cmp-eyebrow__dot"></span>
+              CV Comparison
+            </span>
+            <h1 class="cmp-page-title">Compare Two CVs</h1>
+            <p class="cmp-page-subtitle">
+              Upload two CVs and a job description — we will tell you which candidate
+              is the stronger match and exactly why.
+            </p>
+          </div>
+        </div>
+
+        <!-- Upload grid -->
+        <div class="cmp-upload-grid">
+
+          <!-- CV A drop zone -->
+          <div class="cmp-drop-card" id="cmp-drop-a">
+            <div class="cmp-drop-card__header">
+              <div class="cmp-cv-label cmp-cv-label--a">CV A</div>
+              <span class="cmp-drop-card__hint">Candidate 1</span>
+            </div>
+            <div class="cmp-drop-zone" id="cmp-zone-a" tabindex="0"
+                 role="button" aria-label="Upload CV A">
+              <div class="cmp-drop-zone__idle" id="cmp-idle-a">
+                <div class="cmp-drop-icon">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                       stroke="currentColor" stroke-width="1.5"
+                       stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="12" y1="18" x2="12" y2="12"/>
+                    <line x1="9" y1="15" x2="15" y2="15"/>
+                  </svg>
+                </div>
+                <p class="cmp-drop-zone__title">Drop CV A here</p>
+                <p class="cmp-drop-zone__sub">or <span class="cmp-link">browse files</span></p>
+                <div class="cmp-format-pills">
+                  <span class="cmp-pill cmp-pill--pdf">PDF</span>
+                  <span class="cmp-pill cmp-pill--docx">DOCX</span>
+                </div>
+              </div>
+              <div class="cmp-drop-zone__filled" id="cmp-filled-a" style="display:none">
+                <div class="cmp-file-card" id="cmp-file-card-a">
+                  <div class="cmp-file-card__icon cmp-file-card__icon--pdf" id="cmp-ficon-a">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="1.6"
+                         stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                      <polyline points="14 2 14 8 20 8"/>
+                    </svg>
+                  </div>
+                  <div class="cmp-file-card__info">
+                    <p class="cmp-file-card__name" id="cmp-fname-a">—</p>
+                    <p class="cmp-file-card__meta" id="cmp-fmeta-a">—</p>
+                    <div class="cmp-file-card__status">
+                      <span class="cmp-status-dot"></span> Ready
+                    </div>
+                  </div>
+                  <button class="cmp-remove-btn" id="cmp-remove-a" type="button"
+                          aria-label="Remove CV A">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2.5"
+                         stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"/>
+                      <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <input type="file" id="cmp-input-a" accept=".pdf,.docx" style="display:none"/>
+          </div>
+
+          <!-- VS divider -->
+          <div class="cmp-vs-divider">
+            <div class="cmp-vs-ring">VS</div>
+          </div>
+
+          <!-- CV B drop zone -->
+          <div class="cmp-drop-card" id="cmp-drop-b">
+            <div class="cmp-drop-card__header">
+              <div class="cmp-cv-label cmp-cv-label--b">CV B</div>
+              <span class="cmp-drop-card__hint">Candidate 2</span>
+            </div>
+            <div class="cmp-drop-zone" id="cmp-zone-b" tabindex="0"
+                 role="button" aria-label="Upload CV B">
+              <div class="cmp-drop-zone__idle" id="cmp-idle-b">
+                <div class="cmp-drop-icon">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                       stroke="currentColor" stroke-width="1.5"
+                       stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="12" y1="18" x2="12" y2="12"/>
+                    <line x1="9" y1="15" x2="15" y2="15"/>
+                  </svg>
+                </div>
+                <p class="cmp-drop-zone__title">Drop CV B here</p>
+                <p class="cmp-drop-zone__sub">or <span class="cmp-link">browse files</span></p>
+                <div class="cmp-format-pills">
+                  <span class="cmp-pill cmp-pill--pdf">PDF</span>
+                  <span class="cmp-pill cmp-pill--docx">DOCX</span>
+                </div>
+              </div>
+              <div class="cmp-drop-zone__filled" id="cmp-filled-b" style="display:none">
+                <div class="cmp-file-card" id="cmp-file-card-b">
+                  <div class="cmp-file-card__icon cmp-file-card__icon--pdf" id="cmp-ficon-b">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="1.6"
+                         stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                      <polyline points="14 2 14 8 20 8"/>
+                    </svg>
+                  </div>
+                  <div class="cmp-file-card__info">
+                    <p class="cmp-file-card__name" id="cmp-fname-b">—</p>
+                    <p class="cmp-file-card__meta" id="cmp-fmeta-b">—</p>
+                    <div class="cmp-file-card__status">
+                      <span class="cmp-status-dot"></span> Ready
+                    </div>
+                  </div>
+                  <button class="cmp-remove-btn" id="cmp-remove-b" type="button"
+                          aria-label="Remove CV B">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2.5"
+                         stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"/>
+                      <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <input type="file" id="cmp-input-b" accept=".pdf,.docx" style="display:none"/>
+          </div>
+
+        </div><!-- /.cmp-upload-grid -->
+
+        <!-- Job Description -->
+        <div class="cmp-jd-section">
+          <div class="cmp-jd-header">
+            <div class="cmp-jd-header__left">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                   stroke="#2563EB" stroke-width="2.5"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="7" width="20" height="14" rx="2"/>
+                <path d="M16 7V5a2 2 0 0 0-4 0v2"/>
+              </svg>
+              <span class="cmp-jd-header__title">Job Description</span>
+              <span class="cmp-required-badge">Required</span>
+            </div>
+            <span class="cmp-jd-counter" id="cmp-jd-counter">0 / 8000</span>
+          </div>
+          <textarea class="cmp-jd-textarea" id="cmp-jd-input" maxlength="8000"
+                    placeholder="Paste the job description here. This is required — we use it to score both CVs against the same role and determine which candidate is the stronger match…"
+                    rows="6"></textarea>
+          <p class="cmp-jd-hint">
+            Both CVs are scored against this job description using your 10-criteria ATS algorithm.
+            The comparison is objective and algorithm-backed.
+          </p>
+        </div>
+
+        <!-- CTA -->
+        <div class="cmp-cta" id="cmp-cta" style="display:none">
+          <div class="cmp-cta__left">
+            <div class="cmp-cta__files">
+              <span class="cmp-cv-label cmp-cv-label--a cmp-cv-label--sm" id="cmp-cta-a">CV A</span>
+              <span class="cmp-cta__arrow">→</span>
+              <span class="cmp-cv-label cmp-cv-label--b cmp-cv-label--sm" id="cmp-cta-b">CV B</span>
+            </div>
+            <p class="cmp-cta__text">Ready to compare — both CVs and JD are set.</p>
+          </div>
+          <button class="btn btn--primary cmp-compare-btn" id="cmp-compare-btn" type="button">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="18" cy="18" r="3"/>
+              <circle cx="6" cy="6" r="3"/>
+              <path d="M13 6h3a2 2 0 0 1 2 2v7"/>
+              <line x1="6" y1="9" x2="6" y2="21"/>
+            </svg>
+            Run Comparison
+          </button>
+        </div>
+
+      </div><!-- /#cmp-upload-phase -->
+
+      <!-- ══════════════════════════
+           LOADING PHASE
+      ══════════════════════════ -->
+      <div id="cmp-loading-phase" style="display:none">
+        <div class="cmp-loading-card">
+          <div class="cmp-loading-rings">
+            <div class="cmp-loading-ring cmp-loading-ring--a">
+              <span>A</span>
+            </div>
+            <div class="cmp-loading-vs">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                   stroke="#2563EB" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="18" cy="18" r="3"/>
+                <circle cx="6" cy="6" r="3"/>
+                <path d="M13 6h3a2 2 0 0 1 2 2v7"/>
+                <line x1="6" y1="9" x2="6" y2="21"/>
+              </svg>
+            </div>
+            <div class="cmp-loading-ring cmp-loading-ring--b">
+              <span>B</span>
+            </div>
+          </div>
+          <h2 class="cmp-loading-title">Comparing CVs</h2>
+          <p class="cmp-loading-step" id="cmp-loading-step">Extracting text from both CVs…</p>
+          <div class="cmp-loading-bar">
+            <div class="cmp-loading-fill" id="cmp-loading-fill"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════
+           RESULTS PHASE
+      ══════════════════════════ -->
+      <div id="cmp-results-phase" style="display:none">
+
+        <!-- Winner banner -->
+        <div class="cmp-winner-banner" id="cmp-winner-banner">
+          <div class="cmp-winner-banner__left">
+            <div class="cmp-winner-label" id="cmp-winner-label">CV A</div>
+            <div class="cmp-winner-text">
+              <h2 class="cmp-winner-title" id="cmp-winner-title">CV A is the stronger match</h2>
+              <p class="cmp-winner-sub" id="cmp-winner-sub">—</p>
+            </div>
+          </div>
+          <button class="btn btn--ghost" id="cmp-new-comparison" type="button">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="23 4 23 10 17 10"/>
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+            </svg>
+            New Comparison
+          </button>
+        </div>
+
+        <!-- Score cards -->
+        <div class="cmp-score-row">
+          <!-- CV A score card -->
+          <div class="cmp-score-card" id="cmp-card-a">
+            <div class="cmp-score-card__label">
+              <div class="cmp-cv-label cmp-cv-label--a">CV A</div>
+              <span class="cmp-score-card__filename" id="cmp-res-fname-a">—</span>
+            </div>
+            <div class="cmp-score-ring-wrap">
+              <svg viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="42" fill="none"
+                        stroke="rgba(37,99,235,.08)" stroke-width="7"/>
+                <circle class="cmp-ring-arc" id="cmp-arc-a"
+                        cx="50" cy="50" r="42" fill="none"
+                        stroke="#2563EB" stroke-width="7"
+                        stroke-linecap="round"
+                        stroke-dasharray="263.9" stroke-dashoffset="263.9"/>
+              </svg>
+              <div class="cmp-ring-inner">
+                <span class="cmp-ring-num" id="cmp-score-a">—</span>
+                <span class="cmp-ring-sub">/100</span>
+              </div>
+            </div>
+            <span class="cmp-score-band" id="cmp-band-a">—</span>
+          </div>
+
+          <!-- Criteria table -->
+          <div class="cmp-criteria-table" id="cmp-criteria-table">
+            <!-- populated by compare.js -->
+          </div>
+
+          <!-- CV B score card -->
+          <div class="cmp-score-card" id="cmp-card-b">
+            <div class="cmp-score-card__label">
+              <div class="cmp-cv-label cmp-cv-label--b">CV B</div>
+              <span class="cmp-score-card__filename" id="cmp-res-fname-b">—</span>
+            </div>
+            <div class="cmp-score-ring-wrap">
+              <svg viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="42" fill="none"
+                        stroke="rgba(37,99,235,.08)" stroke-width="7"/>
+                <circle class="cmp-ring-arc" id="cmp-arc-b"
+                        cx="50" cy="50" r="42" fill="none"
+                        stroke="#06B6D4" stroke-width="7"
+                        stroke-linecap="round"
+                        stroke-dasharray="263.9" stroke-dashoffset="263.9"/>
+              </svg>
+              <div class="cmp-ring-inner">
+                <span class="cmp-ring-num" id="cmp-score-b">—</span>
+                <span class="cmp-ring-sub">/100</span>
+              </div>
+            </div>
+            <span class="cmp-score-band" id="cmp-band-b">—</span>
+          </div>
+        </div>
+
+        <!-- AI Verdict -->
+        <div class="cmp-verdict-section">
+          <div class="cmp-verdict-header">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                 stroke="#7C3AED" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            <h3 class="cmp-verdict-title">AI Verdict</h3>
+            <span class="cmp-verdict-badge">Algorithm-backed analysis</span>
+          </div>
+          <div class="cmp-verdict-body" id="cmp-verdict-body">
+            <!-- populated by compare.js -->
+          </div>
+        </div>
+
+        <!-- Strengths & Weaknesses -->
+        <div class="cmp-sw-grid" id="cmp-sw-grid">
+          <!-- populated by compare.js -->
+        </div>
+
+      </div><!-- /#cmp-results-phase -->
+
+    </main>
+  </div>
+</div>
+
+<!-- TOASTS -->
+<div class="cmp-toasts" id="cmp-toasts" aria-live="polite"></div>
+
+<script src="{{ url_for('static', filename='js/compare.render.js') }}"></script>
+<script src="{{ url_for('static', filename='js/compare.js') }}"></script>
+{% include 'chatbot.html' %}
+<script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
+
+<script>
+document.getElementById('logout-btn').addEventListener('click', async () => {
+  const token = localStorage.getItem('access_token');
+  try {
+    await fetch('/auth/logout', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+  } catch (e) {}
+  localStorage.removeItem('access_token');
+  window.location.href = '/signin';
+});
+</script>
+</body>
+</html>

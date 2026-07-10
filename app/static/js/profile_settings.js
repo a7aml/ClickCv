@@ -93,6 +93,11 @@ async function loadStats() {
   if (sidebarDesc) sidebarDesc.textContent = data.avg_score ? `Your average CV score is ${data.avg_score}/100.` : "No analyses yet. Upload your first CV!";
 }
 
+/* ══════════════════════════════════════
+   AVATAR DISPLAY (read-only)
+   Renders the user's initial or an existing
+   avatar_url from the server. No upload UI.
+══════════════════════════════════════ */
 function refreshAvatarUI(firstName, avatarUrl) {
   const bigAvatar    = document.getElementById("avatar-img");
   const topbarAvatar = document.getElementById("topbar-avatar");
@@ -169,27 +174,6 @@ async function updatePassword() {
   else { showToast(data.error || "Failed to update password.", "error"); }
 }
 
-function triggerAvatarUpload() {
-  const input = document.createElement("input"); input.type = "file"; input.accept = "image/png,image/jpeg,image/gif,image/webp"; input.style.display = "none"; document.body.appendChild(input);
-  input.addEventListener("change", async () => {
-    const file = input.files[0]; document.body.removeChild(input); if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { showToast("Image too large. Max 5 MB.", "error"); return; }
-    const btn = document.querySelector('[data-action="upload-photo"]');
-    const restore = setLoading(btn, "Uploading…");
-    const formData = new FormData(); formData.append("avatar", file);
-    const { ok, data } = await apiFetch("/api/profile/avatar", "POST", formData);
-    restore();
-    if (ok) {
-      showToast(data.message);
-      const bigAvatar    = document.getElementById("avatar-img");
-      const topbarAvatar = document.getElementById("topbar-avatar");
-      if (bigAvatar)    bigAvatar.innerHTML    = `<img src="${data.avatar_url}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" alt="avatar">`;
-      if (topbarAvatar) topbarAvatar.innerHTML = `<img src="${data.avatar_url}" style="width:34px;height:34px;border-radius:50%;object-fit:cover;" alt="avatar">`;
-    } else { showToast(data.error || "Upload failed.", "error"); }
-  });
-  input.click();
-}
-
 function confirmDeleteAccount() {
   document.getElementById("cv-delete-modal")?.remove();
   const isGoogle = document.getElementById("email")?.dataset.provider === "google";
@@ -222,10 +206,8 @@ function confirmDeleteAccount() {
 document.addEventListener("DOMContentLoaded", () => {
   if (!getToken()) { window.location.href = "/signin"; return; }
   loadProfile();
-  loadStats();
+  loadStats();   // <-- Fetches and displays account statistics
   document.querySelector('[data-action="save-info"]')?.addEventListener("click", saveProfileInfo);
   document.querySelector('[data-action="update-password"]')?.addEventListener("click", updatePassword);
-  document.querySelector('[data-action="upload-photo"]')?.addEventListener("click", triggerAvatarUpload);
-  document.querySelector(".avatar-wrap__badge")?.addEventListener("click", triggerAvatarUpload);
   document.querySelector('[data-action="delete-account"]')?.addEventListener("click", confirmDeleteAccount);
 });

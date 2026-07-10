@@ -1,0 +1,73 @@
+<!-- Chatbot Component -->
+<div id="chatbot-container">
+    <!-- Auto-prompt cloud -->
+    <div id="chatbot-prompt" class="chatbot-prompt hidden">
+        <p>I can help you, do you have any resume questions?</p>
+        <button id="dismiss-prompt" class="dismiss-btn">Don't show again</button>
+    </div>
+
+    <!-- Chat bubble -->
+    <div id="chatbot-bubble" class="chatbot-bubble">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="white" viewBox="0 0 16 16">
+            <path d="M2.678 11.894a1 1 0 0 1 .287.801 10.97 10.97 0 0 1-.398 2c1.395-.323 2.247-.697 2.634-.893a1 1 0 0 1 .71-.074A8.06 8.06 0 0 0 8 14c3.996 0 7-2.807 7-6 0-3.192-3.004-6-7-6S1 4.808 1 8c0 1.468.617 2.83 1.678 3.894zm-.493 3.905a21.682 21.682 0 0 1-.713.129c-.2.032-.352-.176-.273-.362a9.68 9.68 0 0 0 .244-.637l.003-.01c.248-.72.45-1.548.524-2.319C.743 11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7-3.582 7-8 7a9.06 9.06 0 0 1-2.347-.306c-.52.263-1.639.742-3.468 1.105z"/>
+        </svg>
+    </div>
+
+    <!-- Chat window -->
+    <div id="chatbot-window" class="chatbot-window hidden">
+        <!-- Header -->
+        <div class="chatbot-header">
+            <div class="header-content">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="white" viewBox="0 0 16 16">
+                    <path d="M8 15c4.418 0 8-3.134 8-7s-3.582-7-8-7-8 3.134-8 7c0 1.76.743 3.37 1.97 4.6-.097.573-.354 1.504-.773 2.227-.215.413.356.627.668.414.344-.233 1.047-.663 1.95-.987A8.942 8.942 0 0 0 8 15z"/>
+                </svg>
+                <div>
+                    <h3>ATS Resume Assistant</h3>
+                    <p class="status-indicator">● Online</p>
+                </div>
+            </div>
+            <button id="close-chat" class="close-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="white" viewBox="0 0 16 16">
+                    <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Messages container -->
+        <div id="chat-messages" class="chat-messages">
+            <div class="message assistant-message">
+                <div class="message-content">
+                    <p>Hello! I'm your ATS Resume Assistant. I can help you with:</p>
+                    <ul>
+                        <li>Resume optimization tips</li>
+                        <li>ATS scoring explanations</li>
+                        <li>Keyword suggestions</li>
+                        <li>Your uploaded resumes analysis</li>
+                    </ul>
+                    <p>How can I assist you today?</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Typing indicator -->
+        <div id="typing-indicator" class="typing-indicator hidden">
+            <div class="message assistant-message">
+                <div class="message-content">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input area -->
+        <div class="chat-input-container">
+            <textarea id="chat-input" placeholder="Ask me anything about resumes..." rows="1"></textarea>
+            <button id="send-message" class="send-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>

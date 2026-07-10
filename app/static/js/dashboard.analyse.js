@@ -1,9 +1,14 @@
 /* ==========================================================
-   dashboard.analyse.js  (~150 lines)
+   dashboard.analyse.js
    Responsibility: analyse button click handler, upload API
    call, run API call, progress updates, error handling.
+
+   FIX: Two-phase approach matching the backend split:
+     Phase 1 → /analysis/run       (fast, ~1.5s) → renders score immediately
+     Phase 2 → /analysis/recommendations/<id> (slow, ~15s) → updates rec cards
    Depends on: dashboard.js (window.cvFiles)
-               dashboard.results.js (window.renderAnalysisResults)
+               dashboard.results.js (window.renderAnalysisResults,
+                                     window.updateRecommendations)
 ========================================================== */
 (function () {
   'use strict';
@@ -74,7 +79,7 @@
     analyseBtn.addEventListener('click', async () => {
       if (!window.cvFiles || !window.cvFiles.length) return;
 
-      /* Validate major — uses pill selector error if available */
+      /* Validate major */
       if (!majorSelect || !majorSelect.value) {
         if (typeof window.showMajorError === 'function') {
           window.showMajorError();
@@ -91,11 +96,15 @@
         return;
       }
 
-      /* Start scan animation — replaces spinner */
+      /* Start scan animation */
       const scan = window.showScanAnimation ? window.showScanAnimation() : null;
 
       try {
-        /* ── Step 1: Upload ── */
+        /* ══════════════════════════════════════════
+           PHASE 1 — Upload + Score (~1.5s)
+        ══════════════════════════════════════════ */
+
+        /* Step 1: Upload */
         const formData = new FormData();
         formData.append('file', window.cvFiles[0].file);
         formData.append('major', majorSelect.value);
@@ -110,10 +119,9 @@
         const uploadData = await uploadResp.json();
         if (!uploadResp.ok) throw new Error(uploadData.error || 'Upload failed.');
 
-        /* ── Step 2: Run ── */
+        /* Step 2: Run scoring (fast — no GPT) */
         updateProgress('Running ATS scoring algorithm...');
         await sleep(300);
-        updateProgress('Generating AI recommendations...');
 
         const runResp = await fetch('/analysis/run', {
           method: 'POST',
@@ -127,17 +135,61 @@
             job_description: jd,
           }),
         });
-        const result = await runResp.json();
-        if (!runResp.ok) throw new Error(result.error || 'Analysis failed.');
+        const scoreResult = await runResp.json();
+        if (!runResp.ok) throw new Error(scoreResult.error || 'Analysis failed.');
 
         updateProgress('Preparing your results...');
-        await sleep(400);
+        await sleep(300);
 
-        /* ── Step 3: Render ── */
+        /* ── Render score immediately (recs will be null/empty) ── */
         if (scan) scan.finish();
         setAnalysing(false);
+
         if (typeof window.renderAnalysisResults === 'function') {
-          window.renderAnalysisResults(result, majorSelect.value);
+          window.renderAnalysisResults(scoreResult, majorSelect.value);
+        }
+
+        /* ══════════════════════════════════════════
+           PHASE 2 — AI Recommendations (slow, ~15s)
+           Runs in background AFTER score is on screen.
+           Updates the rec cards when ready.
+        ══════════════════════════════════════════ */
+        const analysisId = scoreResult.analysis_id;
+        if (!analysisId) return;   // safety — should always be present
+
+        // Show loading state in the rec panel
+        if (typeof window.showRecsLoading === 'function') {
+          window.showRecsLoading();
+        }
+
+        try {
+          const recResp = await fetch(`/analysis/recommendations/${analysisId}`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          const recData = await recResp.json();
+
+          if (recResp.ok && recData.recommendations) {
+            // Inject recommendations into the already-rendered results panel
+            if (typeof window.updateRecommendations === 'function') {
+              window.updateRecommendations(recData.recommendations);
+            }
+          } else {
+            // Non-fatal — show a soft warning in the rec panel
+            if (typeof window.showRecsError === 'function') {
+              window.showRecsError('AI recommendations could not be generated. Try again later.');
+            }
+          }
+        } catch (recErr) {
+          // Rec fetch failed — score is still showing, just no recs
+          console.warn('Recommendations fetch failed (non-fatal):', recErr.message);
+          if (typeof window.showRecsError === 'function') {
+            window.showRecsError('AI recommendations timed out. Your score is still accurate.');
+          }
         }
 
       } catch (err) {

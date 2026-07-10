@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>MyCV — Generate Resume with AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/build.css') }}"/>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/generate.css') }}"/>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar__inner">
+      <a class="brand" href="/"><span class="brand__mark">C</span><span>ClickCV</span></a>
+      <nav class="topbar__nav">
+        <a class="topbar__link topbar__link--active" href="/build-cv">Build CV</a>
+        <a class="topbar__link" href="/rebuild">Rebuild CV</a>
+        <a class="topbar__link" href="/compare-cv">Compare CV</a>
+        <a class="topbar__link" href="/dashboard">Analyse CV</a>
+        <a class="topbar__link" href="/cover-letter">Cover Letter</a>
+        <a class="topbar__link" href="/find-job">Find Job</a>
+        <a class="topbar__link" href="/history">History</a>
+        <a class="topbar__link" href="/profile">Profile</a>
+      </nav>
+      <button class="btn--logout" id="logout-btn" type="button" aria-label="Logout">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        <span>Logout</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- WIZARD -->
+  <div class="wizard-wrap">
+    <div class="wizard-card">
+
+      <!-- Header -->
+      <div class="wizard-header">
+        <div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <a href="/build-cv" class="btn btn--ghost btn--sm">← Back</a>
+            <h2>Generate Full Resume with AI</h2>
+          </div>
+          <p class="wizard-subtitle">Answer a few quick questions — AI writes the rest, tailored to your target job.</p>
+        </div>
+      </div>
+
+      <!-- Stepper -->
+      <div class="stepper" id="stepper">
+        <div class="stepper__item active" data-step="1">
+          <div class="stepper__dot">1</div>
+          <div class="stepper__label">Target &amp; Contact</div>
+        </div>
+        <div class="stepper__line"></div>
+        <div class="stepper__item" data-step="2">
+          <div class="stepper__dot">2</div>
+          <div class="stepper__label">Education</div>
+        </div>
+        <div class="stepper__line"></div>
+        <div class="stepper__item" data-step="3">
+          <div class="stepper__dot">3</div>
+          <div class="stepper__label">Experience</div>
+        </div>
+        <div class="stepper__line"></div>
+        <div class="stepper__item" data-step="4">
+          <div class="stepper__dot">4</div>
+          <div class="stepper__label">Skills &amp; Projects</div>
+        </div>
+        <div class="stepper__line"></div>
+        <div class="stepper__item" data-step="5">
+          <div class="stepper__dot">5</div>
+          <div class="stepper__label">Job Description</div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════
+           STEP 1 — Target & Contact
+      ══════════════════════════════ -->
+      <div class="wizard-step active" data-step="1">
+        <h3 class="wizard-step__title">Target role &amp; contact details</h3>
+        <p class="wizard-step__hint">This information appears as-is on your resume and helps AI tailor its writing.</p>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Target Job Title</label>
+            <input type="text" id="w-target-title" placeholder="e.g. Backend Software Engineer"/>
+          </div>
+          <div class="field">
+            <label>Industry</label>
+            <select id="w-major">
+              <option value="">— Select industry —</option>
+              <option value="technology">Technology</option>
+              <option value="medical">Medical</option>
+              <option value="engineering">Engineering</option>
+              <option value="financial">Financial</option>
+              <option value="marketing">Marketing</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Full Name *</label>
+            <input type="text" id="w-name" placeholder="Ahmed Gamel"/>
+          </div>
+          <div class="field">
+            <label>Email *</label>
+            <input type="email" id="w-email" placeholder="ahmed@email.com"/>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Phone</label>
+            <input type="text" id="w-phone" placeholder="+60 111 773 4612"/>
+          </div>
+          <div class="field">
+            <label>Location</label>
+            <input type="text" id="w-location" placeholder="Melaka, Malaysia"/>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>LinkedIn</label>
+            <input type="text" id="w-linkedin" placeholder="linkedin.com/in/username"/>
+          </div>
+          <div class="field">
+            <label>Website</label>
+            <input type="text" id="w-website" placeholder="github.com/username"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════
+           STEP 2 — Education
+      ══════════════════════════════ -->
+      <div class="wizard-step" data-step="2">
+        <h3 class="wizard-step__title">Education</h3>
+        <p class="wizard-step__hint">Add at least one entry. AI will not alter these facts.</p>
+
+        <div class="entry-list" id="w-edu-list"></div>
+        <button class="add-entry-btn" type="button" onclick="addEduEntry()">+ Add Education</button>
+      </div>
+
+      <!-- ══════════════════════════════
+           STEP 3 — Experience
+      ══════════════════════════════ -->
+      <div class="wizard-step" data-step="3">
+        <h3 class="wizard-step__title">Work Experience</h3>
+        <p class="wizard-step__hint">
+          Job title, company, and dates are used exactly as entered. In the notes field,
+          briefly describe what you did — AI will turn this into polished, ATS-optimized bullet points.
+          No experience yet? Skip this step.
+        </p>
+
+        <div class="entry-list" id="w-exp-list"></div>
+        <button class="add-entry-btn" type="button" onclick="addExpEntry()">+ Add Experience</button>
+      </div>
+
+      <!-- ══════════════════════════════
+           STEP 4 — Skills & Projects
+      ══════════════════════════════ -->
+      <div class="wizard-step" data-step="4">
+        <h3 class="wizard-step__title">Skills</h3>
+        <p class="wizard-step__hint">Add your skills one at a time — AI will organize them into categories tailored to your target job.</p>
+
+        <div class="field">
+          <label>Skills</label>
+          <div class="skill-input-row">
+            <input type="text" id="w-skill-input" placeholder="e.g. Python — press Enter" onkeydown="addSkillTagWizard(event)"/>
+            <button class="btn btn--secondary btn--sm" type="button" onclick="addSkillTagWizard(null)">Add</button>
+          </div>
+          <div class="skill-tags" id="w-skill-tags"></div>
+        </div>
+
+        <h3 class="wizard-step__title" style="margin-top:22px">Projects <span style="font-weight:500;color:var(--c-muted);font-size:12px">(optional)</span></h3>
+        <p class="wizard-step__hint">Title and tech stack are used exactly as entered. Add a short note — AI writes the description.</p>
+
+        <div class="entry-list" id="w-proj-list"></div>
+        <button class="add-entry-btn" type="button" onclick="addProjEntry()">+ Add Project</button>
+      </div>
+
+      <!-- ══════════════════════════════
+           STEP 5 — Job Description
+      ══════════════════════════════ -->
+      <div class="wizard-step" data-step="5">
+        <h3 class="wizard-step__title">Job Description</h3>
+        <p class="wizard-step__hint">Paste the full job description you're applying to. AI tailors every section — summary, bullet points, and skill ordering — to match it.</p>
+
+        <div class="field">
+          <label>Job Description *</label>
+          <textarea id="w-jd" rows="12" maxlength="8000" placeholder="Paste the full job description here..."></textarea>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <div class="wizard-nav">
+        <button class="btn btn--ghost" id="wizard-back" type="button" onclick="wizardBack()" style="visibility:hidden">← Back</button>
+        <button class="btn btn--primary" id="wizard-next" type="button" onclick="wizardNext()">Next →</button>
+
+    <button class="btn btn--primary wizard-generate-btn" id="wizard-generate" type="button" onclick="generateResume()" style="display:none">
+      <svg class="icon icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>
+        <path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/>
+      </svg>
+      Generate My Resume
+    </button>      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     GENERATION PROGRESS OVERLAY
+══════════════════════════════ -->
+<div class="gen-overlay" id="gen-overlay">
+  <div class="gen-card">
+    <div class="gen-spinner"></div>
+    <h2 class="gen-card__title">Generating your resume…</h2>
+    <p class="gen-card__status" id="gen-status">Setting things up…</p>
+    <div class="gen-steps" id="gen-steps">
+      <div class="gen-step" data-step="contact">Contact &amp; Education</div>
+      <div class="gen-step" data-step="experience">Writing experience bullets</div>
+      <div class="gen-step" data-step="skills">Organizing skills</div>
+      <div class="gen-step" data-step="projects">Writing project descriptions</div>
+      <div class="gen-step" data-step="summary">Writing professional summary</div>
+      <div class="gen-step" data-step="score">Calculating ATS score</div>
+    </div>
+    <p class="gen-card__error" id="gen-error"></p>
+  </div>
+</div>
+
+<div class="cv-toast" id="cv-toast"></div>
+
+<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+<script src="{{ url_for('static', filename='js/build/build.core.js') }}"></script>
+<script src="{{ url_for('static', filename='js/generate.js') }}"></script>
+
+<script>
+document.getElementById('logout-btn').addEventListener('click', async () => {
+  const token = localStorage.getItem('access_token');
+  try {
+    await fetch('/auth/logout', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+  } catch (e) {}
+  localStorage.removeItem('access_token');
+  window.location.href = '/signin';
+});
+</script>
+
+</body>
+</html>

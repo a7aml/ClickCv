@@ -1,0 +1,951 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>MyCV — Admin Panel</title>
+<meta name="description" content="Admin panel for managing MyCV users."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+
+<style>
+:root {
+  --c-bg:      #F0F4FF;
+  --c-text:    #0f1624;
+  --c-muted:   rgba(15,22,36,0.55);
+  --c-primary: #2563EB;
+  --c-accent:  #06B6D4;
+  --c-border:  rgba(37,99,235,0.12);
+  --c-white:   #ffffff;
+  --c-danger:  #DC2626;
+  --c-success: #059669;
+  --c-warn:    #D97706;
+  --grad-main: linear-gradient(135deg,#2563EB 0%,#06B6D4 100%);
+  --shadow-sm: 0 2px 12px rgba(37,99,235,0.08);
+  --shadow-md: 0 8px 32px rgba(37,99,235,0.14);
+  --shadow-lg: 0 22px 60px rgba(37,99,235,0.16);
+  --radius-sm: 10px; --radius-md:14px; --radius-lg:20px;
+  --font:'Plus Jakarta Sans',sans-serif;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--c-bg);color:var(--c-text);min-height:100vh}
+a{color:inherit;text-decoration:none}
+input,button,select{font:inherit}
+
+/* ── Topbar ── */
+.topbar{
+  position:sticky;top:0;z-index:50;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:16px;padding:14px clamp(20px,4vw,40px);
+  background:rgba(255,255,255,0.85);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--c-border);
+}
+.topbar__brand{display:inline-flex;align-items:center;gap:10px;font-weight:800;font-size:16px;letter-spacing:-.02em}
+.topbar__mark{
+  width:34px;height:34px;border-radius:10px;
+  display:grid;place-items:center;font-weight:900;font-size:14px;color:#fff;
+  background:var(--grad-main);box-shadow:0 6px 16px rgba(37,99,235,.25);
+}
+.topbar__badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:4px 10px;border-radius:999px;
+  background:rgba(37,99,235,.08);color:var(--c-primary);
+  font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  border:1px solid rgba(37,99,235,.16);
+}
+.topbar__right{display:flex;align-items:center;gap:12px}
+.topbar__admin{
+  display:flex;align-items:center;gap:10px;
+  font-size:13px;color:var(--c-muted);
+}
+.topbar__avatar{
+  width:32px;height:32px;border-radius:50%;
+  display:grid;place-items:center;font-weight:800;font-size:13px;color:#fff;
+  background:var(--grad-main);
+}
+
+/* ── Buttons ── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:10px 18px;border-radius:999px;
+  font-family:var(--font);font-weight:700;font-size:13px;
+  border:1px solid transparent;cursor:pointer;
+  transition:transform .15s,box-shadow .15s,background .15s,border-color .15s;
+  white-space:nowrap;
+}
+.btn:hover{transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn--sm{padding:7px 14px;font-size:12px}
+.btn--ghost{background:#fff;color:var(--c-text);border-color:rgba(15,22,36,.10);box-shadow:var(--shadow-sm)}
+.btn--ghost:hover{border-color:rgba(37,99,235,.22);box-shadow:var(--shadow-md)}
+.btn--danger{background:rgba(220,38,38,.08);color:var(--c-danger);border-color:rgba(220,38,38,.16)}
+.btn--danger:hover{background:rgba(220,38,38,.14)}
+.btn--primary{background:var(--grad-main);color:#fff;box-shadow:0 4px 16px rgba(37,99,235,.25)}
+.btn--primary:hover{box-shadow:0 6px 22px rgba(37,99,235,.35)}
+.btn--edit{background:rgba(37,99,235,.08);color:var(--c-primary);border-color:rgba(37,99,235,.16)}
+.btn--edit:hover{background:rgba(37,99,235,.14)}
+.btn--admin-on{background:rgba(5,150,105,.10);color:var(--c-success);border-color:rgba(5,150,105,.2)}
+.btn--admin-off{background:rgba(15,22,36,.05);color:var(--c-muted);border-color:rgba(15,22,36,.08)}
+.btn--full{width:100%}
+.btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
+
+/* ── Layout ── */
+.page{max-width:1180px;margin:0 auto;padding:clamp(20px,4vw,40px)}
+.page__header{margin-bottom:24px}
+.page__title{font-size:clamp(22px,2.6vw,30px);font-weight:800;letter-spacing:-.03em;margin-bottom:6px}
+.page__subtitle{font-size:14px;color:var(--c-muted)}
+
+/* ── Stats row ── */
+.stats{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:14px;
+  margin-bottom:24px;
+}
+.stat-card{
+  background:#fff;border:1px solid var(--c-border);border-radius:var(--radius-md);
+  padding:18px 20px;box-shadow:var(--shadow-sm);
+}
+.stat-card__label{font-size:12px;font-weight:700;color:var(--c-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.stat-card__value{font-size:26px;font-weight:800;letter-spacing:-.03em}
+.stat-card__value--accent{color:var(--c-primary)}
+.stat-card__value--success{color:var(--c-success)}
+.stat-card__value--warn{color:var(--c-warn)}
+
+/* ── Toolbar ── */
+.toolbar{
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  margin-bottom:16px;
+}
+.search{
+  flex:1;min-width:220px;position:relative;
+}
+.search input{
+  width:100%;padding:11px 14px 11px 38px;
+  border-radius:12px;border:1px solid rgba(37,99,235,0.16);
+  background:rgba(240,244,255,0.6);color:var(--c-text);font-size:13.5px;
+  transition:border-color .2s,box-shadow .2s,background .2s;
+}
+.search input::placeholder{color:rgba(15,22,36,0.35)}
+.search input:focus{
+  outline:none;border-color:rgba(37,99,235,.5);
+  background:#fff;box-shadow:0 0 0 4px rgba(37,99,235,.10);
+}
+.search__icon{
+  position:absolute;left:13px;top:50%;transform:translateY(-50%);
+  color:var(--c-muted);display:flex;
+}
+.filter-select{
+  padding:11px 14px;border-radius:12px;
+  border:1px solid rgba(37,99,235,0.16);
+  background:rgba(240,244,255,0.6);color:var(--c-text);
+  font-size:13.5px;font-weight:600;cursor:pointer;
+}
+.filter-select:focus{outline:none;border-color:rgba(37,99,235,.5)}
+
+/* ── Table card ── */
+.table-card{
+  background:#fff;border:1px solid var(--c-border);border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-sm);overflow:hidden;
+}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+thead th{
+  text-align:left;font-size:11.5px;font-weight:800;color:var(--c-muted);
+  text-transform:uppercase;letter-spacing:.06em;
+  padding:14px 16px;border-bottom:1px solid var(--c-border);
+  white-space:nowrap;
+}
+tbody td{
+  padding:14px 16px;border-bottom:1px solid rgba(37,99,235,.06);
+  vertical-align:middle;
+}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(37,99,235,.025)}
+
+.user-cell{display:flex;align-items:center;gap:10px}
+.user-avatar{
+  width:34px;height:34px;border-radius:50%;flex-shrink:0;
+  display:grid;place-items:center;font-weight:800;font-size:13px;color:#fff;
+  background:var(--grad-main);
+}
+.user-name{font-weight:700;font-size:13.5px}
+.user-email{font-size:12px;color:var(--c-muted)}
+
+.pill{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 10px;border-radius:999px;
+  font-size:11px;font-weight:700;
+}
+.pill--local{background:rgba(37,99,235,.08);color:var(--c-primary);border:1px solid rgba(37,99,235,.16)}
+.pill--google{background:rgba(217,119,6,.08);color:var(--c-warn);border:1px solid rgba(217,119,6,.18)}
+.pill--admin{background:rgba(5,150,105,.10);color:var(--c-success);border:1px solid rgba(5,150,105,.2)}
+.pill--user{background:rgba(15,22,36,.05);color:var(--c-muted);border:1px solid rgba(15,22,36,.08)}
+
+.row-actions{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+
+/* ── Empty / loading states ── */
+.state-row td{padding:48px 16px;text-align:center;color:var(--c-muted)}
+.state-row .spinner{
+  width:24px;height:24px;border-radius:50%;
+  border:3px solid rgba(37,99,235,.15);border-top-color:var(--c-primary);
+  animation:spin .7s linear infinite;margin:0 auto 10px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Modal (shared: delete confirm + edit user) ── */
+.modal-overlay{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(15,22,36,.45);
+  display:none;align-items:center;justify-content:center;
+  padding:20px;
+  animation:fadeIn .2s ease both;
+}
+.modal-overlay.visible{display:flex}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{
+  background:#fff;border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-lg);
+  width:min(440px,100%);padding:28px;
+  animation:popIn .22s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes popIn{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.modal__icon{
+  width:48px;height:48px;border-radius:50%;
+  display:grid;place-items:center;margin-bottom:14px;
+}
+.modal__icon--danger{background:rgba(220,38,38,.10);color:var(--c-danger)}
+.modal__icon--edit{background:rgba(37,99,235,.10);color:var(--c-primary)}
+.modal__title{font-size:17px;font-weight:800;letter-spacing:-.02em;margin-bottom:8px}
+.modal__text{font-size:13.5px;color:var(--c-muted);line-height:1.6;margin-bottom:22px}
+.modal__text strong{color:var(--c-text)}
+.modal__actions{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
+
+/* ── Edit form ── */
+.edit-form{display:grid;gap:14px}
+.edit-form__group{display:grid;gap:6px}
+.edit-form__label{font-size:12.5px;font-weight:700;color:rgba(15,22,36,0.75)}
+.edit-form__input{
+  width:100%;padding:11px 13px;
+  border-radius:11px;
+  border:1px solid rgba(37,99,235,0.16);
+  background:rgba(240,244,255,0.55);
+  color:var(--c-text);font-size:13.5px;
+  transition:border-color .2s,box-shadow .2s,background .2s;
+}
+.edit-form__input::placeholder{color:rgba(15,22,36,0.35)}
+.edit-form__input:focus{
+  outline:none;border-color:rgba(37,99,235,0.55);
+  background:#fff;box-shadow:0 0 0 4px rgba(37,99,235,0.10);
+}
+.edit-form__input:disabled{
+  background:rgba(15,22,36,.04);color:rgba(15,22,36,.35);
+  cursor:not-allowed;
+}
+.edit-form__hint{font-size:11.5px;color:var(--c-muted);line-height:1.5}
+.edit-form__hint--warn{
+  display:flex;align-items:flex-start;gap:6px;
+  color:var(--c-warn);background:rgba(217,119,6,.08);
+  border:1px solid rgba(217,119,6,.16);border-radius:10px;
+  padding:8px 10px;
+}
+.edit-form__error{
+  font-size:12.5px;color:var(--c-danger);
+  background:rgba(220,38,38,.06);border:1px solid rgba(220,38,38,.14);
+  border-radius:10px;padding:8px 10px;display:none;
+}
+.edit-form__error.visible{display:block}
+
+/* ── Toast ── */
+.toast{
+  position:fixed;bottom:24px;right:24px;z-index:300;
+  display:flex;align-items:center;gap:10px;
+  padding:12px 18px;border-radius:12px;
+  background:var(--c-text);color:#fff;
+  font-size:13px;font-weight:600;
+  box-shadow:0 8px 32px rgba(0,0,0,.18);
+  transform:translateY(16px);opacity:0;
+  transition:transform .3s ease,opacity .3s ease;
+  max-width:360px;
+}
+.toast--show{transform:translateY(0);opacity:1}
+.toast--error{background:#DC2626}
+.toast--success{background:#059669}
+
+/* ── Responsive ── */
+@media(max-width:900px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:640px){
+  .stats{grid-template-columns:1fr 1fr}
+  .topbar__admin span:last-child{display:none}
+  thead th:nth-child(4), tbody td:nth-child(4){display:none} /* hide "joined" col */
+}
+</style>
+</head>
+
+<body>
+
+<!-- ── Topbar ── -->
+<header class="topbar">
+  <div class="topbar__brand">
+    <span class="topbar__mark">C</span>
+    <span>MyCV</span>
+    <span class="topbar__badge">Admin</span>
+  </div>
+  <div class="topbar__right">
+    <div class="topbar__admin">
+      <span class="topbar__avatar" id="admin-avatar">A</span>
+      <span id="admin-name">Admin</span>
+    </div>
+    <button class="btn btn--ghost btn--sm" id="logout-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+        <polyline points="16 17 21 12 16 7"/>
+        <line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+      Logout
+    </button>
+  </div>
+</header>
+
+<!-- ── Main ── -->
+<main class="page">
+
+  <div class="page__header">
+    <h1 class="page__title">User Management</h1>
+    <p class="page__subtitle">View, search, edit, promote, and remove MyCV accounts.</p>
+  </div>
+
+  <!-- Stats -->
+  <section class="stats" aria-label="User statistics">
+    <div class="stat-card">
+      <div class="stat-card__label">Total Users</div>
+      <div class="stat-card__value" id="stat-total">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__label">Local Accounts</div>
+      <div class="stat-card__value stat-card__value--accent" id="stat-local">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__label">Google Accounts</div>
+      <div class="stat-card__value stat-card__value--warn" id="stat-google">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__label">Admins</div>
+      <div class="stat-card__value stat-card__value--success" id="stat-admins">—</div>
+    </div>
+  </section>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="search">
+      <span class="search__icon" aria-hidden="true">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </span>
+      <input type="text" id="search-input" placeholder="Search by name or email…" autocomplete="off"/>
+    </div>
+    <select class="filter-select" id="filter-provider">
+      <option value="all">All Providers</option>
+      <option value="local">Local</option>
+      <option value="google">Google</option>
+    </select>
+    <select class="filter-select" id="filter-role">
+      <option value="all">All Roles</option>
+      <option value="admin">Admins</option>
+      <option value="user">Users</option>
+    </select>
+  </div>
+
+  <!-- Table -->
+  <div class="table-card">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Provider</th>
+            <th>Role</th>
+            <th>Joined</th>
+            <th style="text-align:right">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="users-tbody">
+          <tr class="state-row">
+            <td colspan="5">
+              <div class="spinner"></div>
+              Loading users…
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<!-- ── Edit user modal ── -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal__icon modal__icon--edit" aria-hidden="true">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+      </svg>
+    </div>
+    <h2 class="modal__title">Edit User</h2>
+
+    <form class="edit-form" id="edit-form">
+      <div class="edit-form__error" id="edit-error"></div>
+
+      <div class="edit-form__group">
+        <label class="edit-form__label" for="edit-name">Name</label>
+        <input class="edit-form__input" type="text" id="edit-name" autocomplete="off" required/>
+      </div>
+
+      <div class="edit-form__group">
+        <label class="edit-form__label" for="edit-email">Email</label>
+        <input class="edit-form__input" type="email" id="edit-email" autocomplete="off" required/>
+      </div>
+
+      <div class="edit-form__group">
+        <label class="edit-form__label" for="edit-password">New Password</label>
+        <input class="edit-form__input" type="password" id="edit-password" placeholder="Leave blank to keep current password" autocomplete="new-password"/>
+        <p class="edit-form__hint" id="edit-password-hint">Minimum 6 characters. Leave blank to keep the current password.</p>
+      </div>
+
+      <div class="modal__actions">
+        <button type="button" class="btn btn--ghost btn--sm" id="edit-cancel">Cancel</button>
+        <button type="submit" class="btn btn--primary btn--sm" id="edit-save">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ── Delete confirmation modal ── -->
+<div class="modal-overlay" id="delete-modal">
+  <div class="modal">
+    <div class="modal__icon modal__icon--danger" aria-hidden="true">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="3 6 5 6 21 6"/>
+        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+      </svg>
+    </div>
+    <h2 class="modal__title">Delete this user?</h2>
+    <p class="modal__text">
+      You're about to permanently delete <strong id="delete-target-name">this user</strong>'s account,
+      including their resumes, analyses, and history. This action cannot be undone.
+    </p>
+    <div class="modal__actions">
+      <button class="btn btn--ghost btn--sm" id="delete-cancel">Cancel</button>
+      <button class="btn btn--danger btn--sm" id="delete-confirm">Delete User</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const API_BASE = '';
+
+  // ── Token helpers (matches auth.js pattern) ──
+  function getToken() {
+    return localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+  }
+  function removeToken() {
+    localStorage.removeItem('access_token');
+    sessionStorage.removeItem('access_token');
+  }
+
+  // ── apiFetch with auto-refresh (same pattern as auth.js) ──
+  async function apiFetch(url, options = {}) {
+    options.headers = {
+      ...options.headers,
+      'Authorization': `Bearer ${getToken()}`,
+    };
+    let res = await fetch(url, options);
+
+    if (res.status === 401) {
+      const refreshed = await tryRefresh();
+      if (refreshed) {
+        options.headers['Authorization'] = `Bearer ${getToken()}`;
+        res = await fetch(url, options);
+      } else {
+        forceLogout();
+        return null;
+      }
+    }
+    return res;
+  }
+
+  async function tryRefresh() {
+    try {
+      const res = await fetch(`${API_BASE}/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (!res.ok) return false;
+      const data = await res.json();
+      if (data.access_token) {
+        localStorage.setItem('access_token', data.access_token);
+        return true;
+      }
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function forceLogout() {
+    removeToken();
+    window.location.href = '/signin';
+  }
+
+  // ── Toast ──
+  function showToast(message, type = 'success') {
+    const existing = document.getElementById('admin-toast');
+    if (existing) existing.remove();
+
+    const toast = document.createElement('div');
+    toast.id = 'admin-toast';
+    toast.className = `toast toast--${type}`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    setTimeout(() => toast.classList.add('toast--show'), 10);
+    setTimeout(() => {
+      toast.classList.remove('toast--show');
+      setTimeout(() => toast.remove(), 300);
+    }, 3200);
+  }
+
+  // ── State ──
+  let allUsers = [];
+  let currentUserId = null;
+  let pendingDeleteId = null;
+  let editingUserId = null;
+
+  // ── Initials helper ──
+  function initials(name) {
+    if (!name) return '?';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0][0].toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+  }
+
+  // ── Load current admin profile (topbar) ──
+  async function loadAdminProfile() {
+    try {
+      const res = await apiFetch(`${API_BASE}/auth/me`);
+      if (!res || !res.ok) return;
+      const data = await res.json();
+      currentUserId = data.user_id;
+      document.getElementById('admin-name').textContent = data.name || 'Admin';
+      document.getElementById('admin-avatar').textContent = initials(data.name);
+    } catch (_) { /* non-fatal */ }
+  }
+
+  // ── Load users ──
+  async function loadUsers() {
+    const tbody = document.getElementById('users-tbody');
+    tbody.innerHTML = `
+      <tr class="state-row">
+        <td colspan="5"><div class="spinner"></div>Loading users…</td>
+      </tr>`;
+
+    try {
+      const res = await apiFetch(`${API_BASE}/admin/users`);
+      if (!res) return; // forceLogout already triggered
+
+      if (!res.ok) {
+        if (res.status === 403) {
+          tbody.innerHTML = `
+            <tr class="state-row">
+              <td colspan="5">You do not have permission to view this page.</td>
+            </tr>`;
+          return;
+        }
+        throw new Error('Failed to load users.');
+      }
+
+      const data = await res.json();
+      allUsers = data.users || [];
+      renderStats(allUsers);
+      renderTable(allUsers);
+
+    } catch (err) {
+      tbody.innerHTML = `
+        <tr class="state-row">
+          <td colspan="5">Could not load users. Please refresh the page.</td>
+        </tr>`;
+      console.error('Load users error:', err);
+    }
+  }
+
+  // ── Stats ──
+  function renderStats(users) {
+    const total  = users.length;
+    const local  = users.filter(u => u.auth_provider === 'local').length;
+    const google = users.filter(u => u.auth_provider === 'google').length;
+    const admins = users.filter(u => u.is_admin).length;
+
+    document.getElementById('stat-total').textContent  = total;
+    document.getElementById('stat-local').textContent  = local;
+    document.getElementById('stat-google').textContent = google;
+    document.getElementById('stat-admins').textContent = admins;
+  }
+
+  // ── Table ──
+  function renderTable(users) {
+    const tbody = document.getElementById('users-tbody');
+
+    const search   = document.getElementById('search-input').value.trim().toLowerCase();
+    const provider = document.getElementById('filter-provider').value;
+    const role     = document.getElementById('filter-role').value;
+
+    let filtered = users.filter(u => {
+      if (search) {
+        const haystack = `${u.name || ''} ${u.email || ''}`.toLowerCase();
+        if (!haystack.includes(search)) return false;
+      }
+      if (provider !== 'all' && u.auth_provider !== provider) return false;
+      if (role === 'admin' && !u.is_admin) return false;
+      if (role === 'user' && u.is_admin) return false;
+      return true;
+    });
+
+    if (!filtered.length) {
+      tbody.innerHTML = `
+        <tr class="state-row">
+          <td colspan="5">No users match your search.</td>
+        </tr>`;
+      return;
+    }
+
+    tbody.innerHTML = filtered.map(u => {
+      const providerPill = u.auth_provider === 'google'
+        ? `<span class="pill pill--google">Google</span>`
+        : `<span class="pill pill--local">Local</span>`;
+
+      const rolePill = u.is_admin
+        ? `<span class="pill pill--admin">Admin</span>`
+        : `<span class="pill pill--user">User</span>`;
+
+      const isSelf = String(u.id) === String(currentUserId);
+
+      const editBtn = `
+        <button class="btn btn--sm btn--edit" data-action="edit" data-id="${u.id}">
+          Edit
+        </button>`;
+
+      const toggleBtn = u.is_admin
+        ? `<button class="btn btn--sm btn--admin-on" data-action="demote" data-id="${u.id}" ${isSelf ? 'disabled title="You cannot change your own role"' : ''}>
+             Remove Admin
+           </button>`
+        : `<button class="btn btn--sm btn--admin-off" data-action="promote" data-id="${u.id}">
+             Make Admin
+           </button>`;
+
+      const deleteBtn = `
+        <button class="btn btn--sm btn--danger" data-action="delete" data-id="${u.id}" data-name="${escapeAttr(u.name || u.email)}" ${isSelf ? 'disabled title="You cannot delete your own account"' : ''}>
+          Delete
+        </button>`;
+
+      return `
+        <tr>
+          <td>
+            <div class="user-cell">
+              <span class="user-avatar">${initials(u.name)}</span>
+              <div>
+                <div class="user-name">${escapeText(u.name || 'Unnamed')}</div>
+                <div class="user-email">${escapeText(u.email)}</div>
+              </div>
+            </div>
+          </td>
+          <td>${providerPill}</td>
+          <td>${rolePill}</td>
+          <td>${formatDate(u.created_at)}</td>
+          <td>
+            <div class="row-actions">
+              ${editBtn}
+              ${toggleBtn}
+              ${deleteBtn}
+            </div>
+          </td>
+        </tr>`;
+    }).join('');
+  }
+
+  function escapeText(str) {
+    return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function escapeAttr(str) {
+    return escapeText(str).replace(/"/g,'&quot;');
+  }
+
+  // ── Promote / Demote ──
+  async function setAdminStatus(userId, makeAdmin) {
+    try {
+      const res = await apiFetch(`${API_BASE}/admin/users/${userId}/admin`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_admin: makeAdmin }),
+      });
+      if (!res) return;
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        showToast(data.error || 'Could not update role.', 'error');
+        return;
+      }
+
+      const user = allUsers.find(u => String(u.id) === String(userId));
+      if (user) user.is_admin = makeAdmin;
+
+      renderStats(allUsers);
+      renderTable(allUsers);
+      showToast(makeAdmin ? 'User promoted to admin.' : 'Admin role removed.', 'success');
+
+    } catch (err) {
+      showToast('Network error. Please try again.', 'error');
+      console.error('Toggle admin error:', err);
+    }
+  }
+
+  // ── Edit user ──
+  function openEditModal(userId) {
+    const user = allUsers.find(u => String(u.id) === String(userId));
+    if (!user) return;
+
+    editingUserId = userId;
+
+    document.getElementById('edit-error').classList.remove('visible');
+    document.getElementById('edit-error').textContent = '';
+    document.getElementById('edit-name').value  = user.name || '';
+    document.getElementById('edit-email').value = user.email || '';
+
+    const passwordInput = document.getElementById('edit-password');
+    const passwordHint  = document.getElementById('edit-password-hint');
+    passwordInput.value = '';
+
+    if (user.auth_provider === 'google' || !user.has_password) {
+      passwordInput.disabled = true;
+      passwordInput.placeholder = 'Not available for Google accounts';
+      passwordHint.className = 'edit-form__hint edit-form__hint--warn';
+      passwordHint.innerHTML = `
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>This account uses Google Sign-In and has no local password to change.</span>`;
+    } else {
+      passwordInput.disabled = false;
+      passwordInput.placeholder = 'Leave blank to keep current password';
+      passwordHint.className = 'edit-form__hint';
+      passwordHint.textContent = 'Minimum 6 characters. Leave blank to keep the current password.';
+    }
+
+    document.getElementById('edit-modal').classList.add('visible');
+  }
+
+  function closeEditModal() {
+    editingUserId = null;
+    document.getElementById('edit-modal').classList.remove('visible');
+    document.getElementById('edit-form').reset();
+  }
+
+  async function submitEdit(e) {
+    e.preventDefault();
+    if (!editingUserId) return;
+
+    const errorBox = document.getElementById('edit-error');
+    errorBox.classList.remove('visible');
+    errorBox.textContent = '';
+
+    const name     = document.getElementById('edit-name').value.trim();
+    const email    = document.getElementById('edit-email').value.trim();
+    const password = document.getElementById('edit-password').value;
+
+    if (!name) {
+      errorBox.textContent = 'Name cannot be empty.';
+      errorBox.classList.add('visible');
+      return;
+    }
+    if (!email) {
+      errorBox.textContent = 'Email cannot be empty.';
+      errorBox.classList.add('visible');
+      return;
+    }
+    if (password && password.length < 6) {
+      errorBox.textContent = 'Password must be at least 6 characters.';
+      errorBox.classList.add('visible');
+      return;
+    }
+
+    const body = { name, email };
+    const passwordInput = document.getElementById('edit-password');
+    if (!passwordInput.disabled && password) {
+      body.password = password;
+    }
+
+    const saveBtn = document.getElementById('edit-save');
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving…';
+
+    try {
+      const res = await apiFetch(`${API_BASE}/admin/users/${editingUserId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res) return;
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        errorBox.textContent = data.error || 'Could not update user.';
+        errorBox.classList.add('visible');
+        return;
+      }
+
+      // Update local state with the returned user object
+      const idx = allUsers.findIndex(u => String(u.id) === String(editingUserId));
+      if (idx !== -1) {
+        allUsers[idx] = { ...allUsers[idx], ...data.user };
+      }
+
+      renderStats(allUsers);
+      renderTable(allUsers);
+      showToast('User updated successfully.', 'success');
+      closeEditModal();
+
+    } catch (err) {
+      errorBox.textContent = 'Network error. Please try again.';
+      errorBox.classList.add('visible');
+      console.error('Edit user error:', err);
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save Changes';
+    }
+  }
+
+  // ── Delete user ──
+  function openDeleteModal(userId, name) {
+    pendingDeleteId = userId;
+    document.getElementById('delete-target-name').textContent = name || 'this user';
+    document.getElementById('delete-modal').classList.add('visible');
+  }
+
+  function closeDeleteModal() {
+    pendingDeleteId = null;
+    document.getElementById('delete-modal').classList.remove('visible');
+  }
+
+  async function confirmDelete() {
+    if (!pendingDeleteId) return;
+    const btn = document.getElementById('delete-confirm');
+    btn.disabled = true;
+    btn.textContent = 'Deleting…';
+
+    try {
+      const res = await apiFetch(`${API_BASE}/admin/users/${pendingDeleteId}`, {
+        method: 'DELETE',
+      });
+      if (!res) return;
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        showToast(data.error || 'Could not delete user.', 'error');
+        return;
+      }
+
+      allUsers = allUsers.filter(u => String(u.id) !== String(pendingDeleteId));
+      renderStats(allUsers);
+      renderTable(allUsers);
+      showToast('User deleted successfully.', 'success');
+      closeDeleteModal();
+
+    } catch (err) {
+      showToast('Network error. Please try again.', 'error');
+      console.error('Delete user error:', err);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Delete User';
+    }
+  }
+
+  // ── Logout ──
+  async function logout() {
+    try {
+      await fetch(`${API_BASE}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${getToken()}`,
+          'Content-Type': 'application/json',
+        },
+      });
+    } catch (_) { /* ignore */ }
+    finally {
+      removeToken();
+      window.location.href = '/signin';
+    }
+  }
+
+  // ── Event delegation for table actions ──
+  document.getElementById('users-tbody').addEventListener('click', e => {
+    const btn = e.target.closest('button[data-action]');
+    if (!btn || btn.disabled) return;
+
+    const action = btn.dataset.action;
+    const id     = btn.dataset.id;
+
+    if (action === 'edit')    openEditModal(id);
+    if (action === 'promote') setAdminStatus(id, true);
+    if (action === 'demote')  setAdminStatus(id, false);
+    if (action === 'delete')  openDeleteModal(id, btn.dataset.name);
+  });
+
+  // ── Edit modal events ──
+  document.getElementById('edit-form').addEventListener('submit', submitEdit);
+  document.getElementById('edit-cancel').addEventListener('click', closeEditModal);
+  document.getElementById('edit-modal').addEventListener('click', e => {
+    if (e.target.id === 'edit-modal') closeEditModal();
+  });
+
+  // ── Delete modal events ──
+  document.getElementById('delete-cancel').addEventListener('click', closeDeleteModal);
+  document.getElementById('delete-confirm').addEventListener('click', confirmDelete);
+  document.getElementById('delete-modal').addEventListener('click', e => {
+    if (e.target.id === 'delete-modal') closeDeleteModal();
+  });
+
+  // ── Search / filter events ──
+  document.getElementById('search-input').addEventListener('input', () => renderTable(allUsers));
+  document.getElementById('filter-provider').addEventListener('change', () => renderTable(allUsers));
+  document.getElementById('filter-role').addEventListener('change', () => renderTable(allUsers));
+
+  // ── Logout button ──
+  document.getElementById('logout-btn').addEventListener('click', logout);
+
+  // ── Init ──
+  document.addEventListener('DOMContentLoaded', () => {
+    if (!getToken()) {
+      window.location.href = '/signin';
+      return;
+    }
+    loadAdminProfile();
+    loadUsers();
+  });
+
+})();
+</script>
+
+</body>
+</html>

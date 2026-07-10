@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>MyCV — Rebuild CV</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/rebuild.css') }}"/>
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar" id="topbar">
+    <div class="topbar__inner">
+      <a class="brand" href="/"><span class="brand__mark">C</span><span>MyCV</span></a>
+      <nav class="topbar__nav">
+        <a class="topbar__link" href="/build-cv">Build CV</a>
+        <a class="topbar__link topbar__link--active" href="/rebuild">Rebuild CV</a>
+        <a class="topbar__link" href="/compare-cv">Compare CV</a>
+        <a class="topbar__link" href="/dashboard">Analyse CV</a>
+        <a class="topbar__link" href="/cover-letter">Cover Letter</a>
+        <a class="topbar__link" href="/find-job">Find Job</a>
+        <a class="topbar__link" href="/history">History</a>
+        <a class="topbar__link" href="/profile">Profile</a>
+      </nav>
+      <button class="btn--logout" id="logout-btn" type="button" aria-label="Logout">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        <span>Logout</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="layout rbd-layout">
+    <main id="main-content" class="rbd-main" role="main">
+
+      <!-- UPLOAD SCREEN -->
+      <div class="rbd-upload-screen" id="rbd-upload-screen" style="display:none">
+        <div class="rbd-upload-card">
+          <div class="rbd-upload-card__eyebrow">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2L15 9H22L16 14L19 21L12 16.5L5 21L8 14L2 9H9L12 2Z"/></svg>
+            <span>AI CV Rebuild</span>
+          </div>
+          <h1 class="rbd-upload-card__title">Rebuild Your CV</h1>
+          <p class="rbd-upload-card__sub">Upload your existing CV — we'll rewrite every section using AI, optimized for ATS keyword matching, structure, and impact. Your facts, our wording.</p>
+
+          <div class="upload-two-columns">
+            <!-- LEFT: Drag & drop -->
+            <div class="left-upload-area">
+              <div class="rbd-dropzone" id="rbd-dropzone">
+                <input type="file" id="rbd-file-input" accept=".pdf,.docx"/>
+                <div class="dropzone-svg-icon">
+                  <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                </div>
+                <p class="rbd-dropzone__text">Drop your CV here or click to browse</p>
+                <p class="rbd-dropzone__sub">PDF or DOCX · Max 5MB</p>
+                <div class="rbd-dropzone__file-name" id="rbd-file-name"></div>
+              </div>
+              <div style="font-size:11px;color:var(--c-muted);text-align:center;">Accepted formats: PDF, DOCX · secure &amp; encrypted</div>
+            </div>
+
+            <!-- RIGHT: Industry + JD + Submit -->
+            <div class="right-config-area">
+              <div class="rbd-field">
+                <label>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                  Industry / Major <span style="color:var(--c-danger)">*</span>
+                </label>
+                <select id="rbd-major">
+                  <option value="">— Select your industry —</option>
+                  <option value="technology">Technology</option>
+                  <option value="engineering">Engineering</option>
+                  <option value="medical">Medical</option>
+                  <option value="financial">Financial</option>
+                  <option value="marketing">Marketing</option>
+                </select>
+              </div>
+              <div class="rbd-field">
+                <label>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                  Job Description <span class="rbd-field__optional">(optional — improves keywords)</span>
+                </label>
+                <textarea id="rbd-jd" placeholder="Paste the job description to target specific keywords and skills..."></textarea>
+              </div>
+              <button class="rbd-submit-btn" id="rbd-submit-btn" onclick="startUploadRebuild()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 0 0-9-9m9 9-5 5m5-5-5-5"/><path d="M3 12a9 9 0 0 0 18 0"/></svg>
+                Rebuild My CV
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOADING -->
+      <div class="rbd-loading" id="rbd-loading" style="display:none">
+        <div class="rbd-loading__card">
+          <div class="rbd-loading__spinner"></div>
+          <h2 class="rbd-loading__title">Rebuilding your CV</h2>
+          <p class="rbd-loading__step" id="rbd-step">Analysing original content…</p>
+          <div class="rbd-loading__bar"><div class="rbd-loading__fill" id="rbd-bar"></div></div>
+        </div>
+      </div>
+
+      <!-- ERROR -->
+      <div class="rbd-error" id="rbd-error" style="display:none">
+        <div class="rbd-error__icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <h2 class="rbd-error__title">Rebuild failed</h2>
+        <p class="rbd-error__text" id="rbd-error-text"></p>
+        <div style="display:flex;gap:10px;justify-content:center;margin-top:12px">
+          <button class="btn btn--ghost" onclick="showUploadScreen()">← Try Again</button>
+        </div>
+      </div>
+
+      <!-- RESULT -->
+      <div class="rbd-result" id="rbd-result" style="display:none">
+        <div class="rbd-topbar">
+          <div class="rbd-topbar__left">
+            <span class="rbd-eyebrow"><span class="rbd-eyebrow__dot"></span>AI CV Rebuild</span>
+            <h1 class="rbd-title">Rebuilt CV</h1>
+            <p class="rbd-subtitle" id="rbd-subtitle"></p>
+          </div>
+          <div class="rbd-topbar__actions">
+            <button class="btn btn--ghost" onclick="showUploadScreen()">← Rebuild Another</button>
+            <button class="btn btn--secondary" id="rbd-dl-docx">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+              </svg>
+              DOCX
+            </button>
+            <button class="btn btn--primary" id="rbd-dl-pdf">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              PDF
+            </button>
+          </div>
+        </div>
+
+        <!-- Score banner -->
+        <div class="rbd-score-banner">
+          <div class="rbd-score-card">
+            <p class="rbd-score-card__lbl">Original</p>
+            <div class="rbd-ring">
+              <svg viewBox="0 0 64 64">
+                <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(37,99,235,.08)" stroke-width="5"/>
+                <circle class="rbd-ring__arc" id="rbd-arc-orig" cx="32" cy="32" r="26" fill="none" stroke="#DC2626" stroke-width="5" stroke-linecap="round" stroke-dasharray="163.4" stroke-dashoffset="163.4"/>
+              </svg>
+              <div class="rbd-ring__label"><span class="rbd-ring__num" id="rbd-num-orig">—</span></div>
+            </div>
+            <p class="rbd-score-card__band" id="rbd-band-orig">—</p>
+          </div>
+
+          <div class="rbd-arrow-wrap">
+            <div class="rbd-delta" id="rbd-delta"><span id="rbd-delta-num">+0</span><span class="rbd-delta__lbl"> pts</span></div>
+            <svg width="48" height="12" viewBox="0 0 48 12" fill="none">
+              <line x1="0" y1="6" x2="40" y2="6" stroke="#2563EB" stroke-width="1.5"/>
+              <polyline points="34,1 42,6 34,11" fill="none" stroke="#2563EB" stroke-width="1.5"/>
+            </svg>
+          </div>
+
+          <div class="rbd-score-card">
+            <p class="rbd-score-card__lbl">Rebuilt</p>
+            <div class="rbd-ring">
+              <svg viewBox="0 0 64 64">
+                <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(37,99,235,.08)" stroke-width="5"/>
+                <circle class="rbd-ring__arc" id="rbd-arc-rebuilt" cx="32" cy="32" r="26" fill="none" stroke="#059669" stroke-width="5" stroke-linecap="round" stroke-dasharray="163.4" stroke-dashoffset="163.4"/>
+              </svg>
+              <div class="rbd-ring__label"><span class="rbd-ring__num" id="rbd-num-rebuilt">—</span></div>
+            </div>
+            <p class="rbd-score-card__band" id="rbd-band-rebuilt">—</p>
+          </div>
+        </div>
+
+        <!-- Body: criteria + CV doc -->
+        <div class="rbd-body">
+          <aside class="rbd-left">
+            <div class="rbd-card">
+              <div class="rbd-card__head">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563EB"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                <h2 class="rbd-card__title">10-Criteria Breakdown</h2>
+              </div>
+              <div class="rbd-criteria" id="rbd-criteria"></div>
+            </div>
+            <div class="rbd-card" id="rbd-gaps-card" style="display:none">
+              <div class="rbd-card__head">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#DC2626"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <h2 class="rbd-card__title">Remaining Gaps</h2>
+              </div>
+              <p class="rbd-card__desc">Keywords not in your original CV — add manually if they apply.</p>
+              <div class="rbd-gaps" id="rbd-gaps"></div>
+            </div>
+          </aside>
+          <section class="rbd-right">
+            <div class="rbd-cv-doc" id="rbd-cv-doc"></div>
+          </section>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<div class="rbd-toasts" id="rbd-toasts"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.8.2/docx.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/rebuild.download.js') }}"></script>
+<script src="{{ url_for('static', filename='js/rebuild.js') }}"></script>
+
+<script>
+document.getElementById('logout-btn')?.addEventListener('click', () => {
+  localStorage.removeItem('access_token');
+  window.location.href = '/signin';
+});
+</script>
+</body>
+</html>

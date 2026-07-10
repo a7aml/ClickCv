@@ -1,0 +1,489 @@
+/* =====================================================
+   compare3.css — 3-column result layout
+   CV documents left/right, analysis center
+===================================================== */
+
+/* ── 3-column body ── */
+.cmp3-body {
+  display: grid;
+  grid-template-columns: 1fr 380px 1fr;
+  gap: 14px;
+  height: calc(100vh - 58px - 160px); /* viewport minus topbar and winner banner */
+  min-height: 600px;
+}
+
+/* ── Columns ── */
+.cmp3-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+
+/* ── Column header ── */
+.cmp3-col-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #fff;
+  border: 1px solid rgba(37,99,235,0.10);
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+.cmp3-col-fname {
+  flex: 1;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #0f1624;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cmp3-score-pill {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Legend ── */
+.cmp3-legend {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 14px;
+  background: rgba(37,99,235,0.03);
+  border: 1px solid rgba(37,99,235,0.08);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+.cmp3-leg-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: rgba(15,22,36,0.55);
+}
+.cmp3-leg-swatch {
+  width: 18px; height: 7px;
+  border-radius: 2px; flex-shrink: 0;
+}
+.cmp3-leg-swatch--found   { background: rgba(37,99,235,0.15); border: 1.5px solid #2563EB; }
+.cmp3-leg-swatch--missing { background: rgba(220,38,38,0.14); border: 1.5px solid #DC2626; }
+.cmp3-leg-swatch--weak    { background: rgba(217,119,6,0.14);  border: 1.5px solid #D97706; }
+
+/* ── CV scroll container ── */
+.cmp3-cv-scroll {
+  flex: 1;
+  overflow-y: auto;
+  border-radius: 12px;
+  background: #f0f4ff;
+  padding: 14px;
+  min-height: 0;
+}
+
+/* ── CV paper — matches cvp-paper from preview module ── */
+.cmp3-cv-paper {
+  background: #ffffff;
+  border: 1px solid rgba(37,99,235,0.10);
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(37,99,235,0.08);
+  padding: 28px 32px;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 12.5px;
+  color: #0f1624;
+  line-height: 1.65;
+}
+
+/* ── CV document elements ── */
+.cmp-cv-name {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f1624;
+  letter-spacing: -0.02em;
+  text-align: center;
+  margin: 0 0 5px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  line-height: 1.2;
+}
+.cmp-cv-contact {
+  text-align: center;
+  font-size: 11px;
+  color: rgba(15,22,36,0.55);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  margin-bottom: 2px;
+  line-height: 1.5;
+}
+.cmp-cv-divider {
+  border: none;
+  border-top: 1px solid rgba(15,22,36,0.15);
+  margin: 10px 0 0;
+}
+.cmp-cv-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1.5px solid #0f1624;
+  padding-bottom: 3px;
+  margin: 16px 0 8px;
+}
+.cmp-cv-section-text {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #0f1624;
+}
+.cmp-cv-section-badge {
+  font-size: 8.5px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(5,150,105,0.10);
+  color: #059669;
+  border: 1px solid rgba(5,150,105,0.22);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.cmp-cv-jobtitle {
+  font-size: 12.5px;
+  font-weight: 700;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: #0f1624;
+  margin: 8px 0 1px;
+}
+.cmp-cv-date {
+  font-size: 10.5px;
+  color: rgba(15,22,36,0.55);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  margin-bottom: 4px;
+  font-style: italic;
+}
+.cmp-cv-bullet {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 2px 0 2px 12px;
+}
+.cmp-cv-bullet-dot {
+  color: #0f1624;
+  font-size: 11px;
+  flex-shrink: 0;
+  line-height: 1.65;
+}
+.cmp-cv-line {
+  font-size: 12px;
+  color: #0f1624;
+  line-height: 1.65;
+  margin: 1px 0;
+}
+.cmp-cv-spacer { height: 5px; }
+.cmp-cv-empty {
+  text-align: center;
+  color: rgba(15,22,36,0.45);
+  font-size: 12px;
+  padding: 40px 0;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* ── Highlight marks ── */
+.cmp-mark {
+  border-radius: 2px;
+  padding: 0 1px;
+  cursor: default;
+}
+.cmp-mark--found {
+  background: rgba(37,99,235,0.10);
+  color: #1D4ED8;
+  border-bottom: 1.5px solid #2563EB;
+  font-weight: 600;
+}
+.cmp-mark--missing {
+  background: rgba(220,38,38,0.10);
+  color: #B91C1C;
+  text-decoration: underline wavy #DC2626;
+  text-underline-offset: 2px;
+  font-weight: 600;
+}
+.cmp-mark--weak {
+  background: rgba(217,119,6,0.10);
+  color: #92400E;
+  text-decoration: underline wavy #D97706;
+  text-underline-offset: 2px;
+}
+
+/* ── CENTER column ── */
+.cmp3-col--center {
+  min-height: 0;
+}
+.cmp3-center-scroll {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  padding-right: 2px;
+}
+
+/* ── Score rings ── */
+.cmp3-rings {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid rgba(37,99,235,0.10);
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+.cmp3-ring-wrap {
+  position: relative;
+  width: 90px; height: 90px;
+  flex-shrink: 0;
+}
+.cmp3-ring-inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.cmp3-ring-num {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.cmp3-ring-sub {
+  font-size: 9px;
+  font-weight: 600;
+  color: rgba(15,22,36,0.50);
+}
+.cmp3-vs-badge {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563EB, #06B6D4);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* ── Criteria ── */
+.cmp3-criteria {
+  background: #fff;
+  border: 1px solid rgba(37,99,235,0.10);
+  border-radius: 12px;
+  padding: 14px 16px;
+  flex-shrink: 0;
+}
+.cmp3-criteria-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 800;
+  color: rgba(15,22,36,0.55);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 12px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.cmp3-criteria-cv { font-size: 10px; font-weight: 700; }
+.cmp3-crit-row {
+  display: grid;
+  grid-template-columns: 28px 1fr 28px;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.cmp3-crit-row:last-child { margin-bottom: 0; }
+.cmp3-crit-val {
+  font-size: 11px;
+  font-weight: 800;
+  text-align: center;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.cmp3-crit-center { display: flex; flex-direction: column; gap: 3px; }
+.cmp3-crit-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(15,22,36,0.60);
+  text-align: center;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.cmp3-crit-weight {
+  font-weight: 500;
+  color: rgba(15,22,36,0.40);
+}
+.cmp3-bars { display: flex; flex-direction: column; gap: 3px; }
+.cmp3-bar-wrap {
+  height: 6px;
+  background: rgba(37,99,235,0.06);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+.cmp3-bar-wrap--a .cmp3-bar-fill { margin-left: auto; }
+.cmp3-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 1s 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* ── Verdict ── */
+.cmp3-verdict {
+  background: #fff;
+  border: 1px solid rgba(124,58,237,0.12);
+  border-radius: 12px;
+  padding: 14px 16px;
+  flex-shrink: 0;
+}
+.cmp3-verdict-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #0f1624;
+  margin-bottom: 10px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.cmp3-verdict-badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(124,58,237,0.08);
+  color: #7C3AED;
+  border: 1px solid rgba(124,58,237,0.18);
+  margin-left: auto;
+}
+.cmp3-verdict-body { font-size: 12px; color: #0f1624; line-height: 1.75; }
+.cmp3-verdict-para { margin: 0 0 10px; }
+.cmp3-verdict-para:last-child { margin: 0; }
+
+/* ── Strengths & Weaknesses ── */
+.cmp3-sw {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.cmp3-sw-col {
+  background: #fff;
+  border: 1px solid rgba(37,99,235,0.10);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+.cmp3-sw-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: rgba(15,22,36,0.60);
+  margin-bottom: 10px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cmp3-sw-list { display: flex; flex-direction: column; gap: 7px; }
+.cmp3-sw-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  font-size: 11.5px;
+  color: #0f1624;
+  line-height: 1.5;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.cmp3-sw-dot {
+  width: 15px; height: 15px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  flex-shrink: 0; margin-top: 1px;
+}
+.cmp3-sw-item--strength .cmp3-sw-dot {
+  background: rgba(5,150,105,0.12); color: #059669;
+}
+.cmp3-sw-item--weakness .cmp3-sw-dot {
+  background: rgba(220,38,38,0.10); color: #DC2626;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1100px) {
+  .cmp3-body { grid-template-columns: 1fr 320px 1fr; }
+}
+@media (max-width: 900px) {
+  .cmp3-body {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+  .cmp3-cv-scroll { height: 400px; }
+  .cmp3-center-scroll { height: auto; overflow: visible; }
+}
+
+/* ── Full width override when results are showing ── */
+.cmp-main:has(.cmp3-body) {
+  max-width: 100% !important;
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+}
+
+/* Winner banner also full width */
+.cmp-main:has(.cmp3-body) .cmp-winner-banner {
+  max-width: 100%;
+}
+
+/* 3-column body fills full width */
+.cmp3-body {
+  width: 100%;
+}
+
+/* ── Verdict bullets ── */
+.cmp3-verdict-bullets {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.cmp3-verdict-bullet {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  color: #0f1624;
+  line-height: 1.55;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  padding-left: 14px;
+  position: relative;
+}
+.cmp3-verdict-bullet::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: #7C3AED;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.cmp3-verdict-empty {
+  font-size: 12px;
+  color: rgba(15,22,36,0.45);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}

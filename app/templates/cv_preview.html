@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>MyCV — Your Generated Resume</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/build.css') }}"/>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/preview.css') }}"/>
+</head>
+<body data-draft-id="{{ draft_id }}">
+<div class="app-shell">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar__inner">
+      <a class="brand" href="/"><span class="brand__mark">C</span><span>ClickCV</span></a>
+      <nav class="topbar__nav">
+        <a class="topbar__link" href="/build-cv">Build CV</a>
+        <a class="topbar__link" href="/rebuild">Rebuild CV</a>
+        <a class="topbar__link" href="/compare-cv">Compare CV</a>
+        <a class="topbar__link" href="/dashboard">Analyse CV</a>
+        <a class="topbar__link" href="/cover-letter">Cover Letter</a>
+        <a class="topbar__link" href="/find-job">Find Job</a>
+        <a class="topbar__link" href="/history">History</a>
+        <a class="topbar__link" href="/profile">Profile</a>
+      </nav>
+      <button class="btn--logout" id="logout-btn" type="button" aria-label="Logout">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        <span>Logout</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- PREVIEW PAGE -->
+  <div class="preview-page">
+    <div class="preview-page__inner">
+
+      <!-- Hero -->
+      <div class="preview-hero">
+        <div class="preview-hero__icon">🎉</div>
+        <div>
+          <h1 class="preview-hero__title">Your resume is ready!</h1>
+          <p class="preview-hero__sub">AI generated and tailored to your target job. Review it below, then edit, download, or regenerate.</p>
+        </div>
+      </div>
+
+      <!-- Generation warning (hidden unless errors present) -->
+      <div class="preview-warning" id="preview-warning" style="display:none">
+        <span class="preview-warning__icon">⚠</span>
+        <span id="preview-warning-text"></span>
+      </div>
+
+      <!-- CV Preview -->
+      <div class="preview-cv-wrap">
+        <div class="preview-cv-label">Resume Preview — ATS Classic</div>
+        <div class="preview-scroll">
+          <div class="cv-paper tpl-1" id="cv-preview"></div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="preview-actions">
+        <button class="btn btn--primary" id="btn-edit">✎ Edit in Builder</button>
+        <button class="btn btn--secondary" id="btn-download-pdf">↓ Download PDF</button>
+        <button class="btn btn--ghost" id="btn-download-docx">↓ Download DOCX</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="cv-toast" id="cv-toast"></div>
+
+<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+<script src="{{ url_for('static', filename='js/build/build.core.js') }}"></script>
+<script src="{{ url_for('static', filename='js/build/build.preview.js') }}"></script>
+<script src="{{ url_for('static', filename='js/preview.js') }}"></script>
+
+<script>
+document.getElementById('logout-btn').addEventListener('click', async () => {
+  const token = localStorage.getItem('access_token');
+  try {
+    await fetch('/auth/logout', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+  } catch (e) {}
+  localStorage.removeItem('access_token');
+  window.location.href = '/signin';
+});
+</script>
+
+</body>
+</html>

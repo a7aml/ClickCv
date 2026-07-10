@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Signing you in…</title>
+<style>
+  body {
+    margin: 0;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    background: linear-gradient(160deg, #EEF2FF 0%, #E0F2FE 50%, #F0FDF4 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    color: #0f1624;
+  }
+  .card {
+    background: #fff;
+    border: 1px solid rgba(37,99,235,.10);
+    border-radius: 18px;
+    box-shadow: 0 8px 32px rgba(37,99,235,.10);
+    padding: 40px 52px;
+    text-align: center;
+    max-width: 340px;
+    width: 100%;
+  }
+  .spinner {
+    width: 44px; height: 44px;
+    border: 4px solid rgba(37,99,235,.12);
+    border-top-color: #2563EB;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  h2 { margin: 0 0 8px; font-size: 17px; font-weight: 800; letter-spacing: -.02em; }
+  p  { margin: 0; font-size: 13px; color: rgba(15,22,36,.5); }
+  .error { color: #DC2626; margin-top: 16px; font-size: 13px; display: none; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="spinner"></div>
+  <h2>Signing you in…</h2>
+  <p>Please wait while we complete your Google login.</p>
+  <p class="error" id="err-msg"></p>
+</div>
+
+<script>
+(async function () {
+  const params = new URLSearchParams(window.location.search);
+  const code   = params.get('code');
+
+  if (!code) {
+    showError('No login code found. Redirecting back…');
+    setTimeout(() => window.location.href = '/signin?error=no_code', 2000);
+    return;
+  }
+
+  try {
+    const res  = await fetch('/auth/google/token', {
+      method:      'POST',
+      credentials: 'include',   // sends/receives httpOnly cookie
+      headers:     { 'Content-Type': 'application/json' },
+      body:        JSON.stringify({ code }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      showError(data.error || 'Login failed. Redirecting…');
+      setTimeout(() => window.location.href = '/signin?error=token_exchange_failed', 2000);
+      return;
+    }
+
+    // Store access token — same place the rest of the app expects it
+    localStorage.setItem('access_token', data.access_token);
+
+    // Navigate to dashboard
+    window.location.href = '/dashboard';
+
+  } catch (err) {
+    showError('Network error. Redirecting…');
+    setTimeout(() => window.location.href = '/signin?error=network_error', 2000);
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('err-msg');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+})();
+</script>
+</body>
+</html>

@@ -3,12 +3,14 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>ClickCV — Dashboard</title>
+<title>MyCV — Dashboard</title>
 <meta name="description" content="ClickCV — Upload your CV for AI-powered analysis."/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}"/>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/chatbot.css') }}"/>
+
 <style>
 :root {
   --c-bg:      #F0F4FF;
@@ -87,6 +89,22 @@ body::before{
 .avatar{width:30px;height:30px;display:grid;place-items:center;border-radius:50%;color:#fff;font-weight:700;font-size:13px;background:var(--grad-main);flex-shrink:0;overflow:hidden;}
 .topbar__username{font-size:12.5px;font-weight:700;color:var(--c-text)}
 .topbar__role{font-size:10.5px;color:var(--c-muted)}
+
+/* Logout button */
+.btn--logout{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 14px;border-radius:999px;
+  font-family:var(--font);font-weight:600;font-size:12px;
+  background:transparent;color:var(--c-muted);
+  border:1px solid var(--c-border);
+  cursor:pointer;transition:color .18s,background .18s,border-color .18s;
+  white-space:nowrap;margin-left:10px;
+}
+.btn--logout:hover{
+  color:var(--c-danger);
+  background:rgba(239,68,68,.06);
+  border-color:rgba(239,68,68,.25);
+}
 
 /* ══════════════════════════════════════
    LAYOUT — full width, no sidebar
@@ -404,6 +422,7 @@ body::before{
   .tips-grid{grid-template-columns:1fr}
   .major-pills{gap:5px}
   .major-pill{padding:5px 10px;font-size:11.5px}
+  .btn--logout span { display: none; } /* hide text on mobile, keep icon */
 }
 </style>
 </head>
@@ -413,34 +432,39 @@ body::before{
 
 <div class="app-shell">
 
-  <!-- ── TOPBAR — brand + user only ── -->
+  <!-- ── TOPBAR ── -->
   <header class="topbar" id="topbar">
     <div class="topbar__inner">
       <a class="brand" href="/">
         <span class="brand__mark">C</span>
-        <span>ClickCV</span>
+        <span>MyCV</span>
       </a>
       <nav class="topbar__nav" aria-label="Primary">
-        <a class="topbar__link topbar__link--active" href="/dashboard">Analyse CV</a>
-        <a class="topbar__link" href="/build-cv">Build CV</a>
+        <a class="topbar__link " href="/build-cv">Build CV</a>
+        <a class="topbar__link "  href="/rebuild">Rebuild CV</a>
         <a class="topbar__link" href="/compare-cv">Compare CV</a>
+        <a class="topbar__link topbar__link--active" href="/dashboard">Analyse CV</a>
+        <a class="topbar__link " href="/cover-letter">Cover Letter</a>
+        <a class="topbar__link"  href="/find-job">Find Job</a>
         <a class="topbar__link" href="/history">History</a>
         <a class="topbar__link" href="/profile">Profile</a>
       </nav>
-      <div class="topbar__user" aria-label="User profile">
-        <div class="avatar" id="dash-avatar">A</div>
-        <div>
-          <p class="topbar__username" id="dash-username">Ahmed</p>
-          <p class="topbar__role">ClickCV User</p>
-        </div>
-      </div>
+      <!-- LOGOUT BUTTON -->
+      <button class="btn--logout" id="logout-btn" type="button" aria-label="Logout">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        <span>Logout</span>
+      </button>
     </div>
   </header>
 
   <div class="layout">
 
     <!-- ── MAIN CONTENT ── -->
-
     <main id="main-content" class="dashboard" role="main">
 
       <!-- Hero strip -->
@@ -663,11 +687,30 @@ if (dashMain) {
   }, { root: dashMain, threshold: 0.08 });
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 }
+
+/* ── Logout ── */
+document.getElementById('logout-btn').addEventListener('click', async () => {
+  const token = localStorage.getItem('access_token');
+  try {
+    await fetch('/auth/logout', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+  } catch (e) {
+    // Network error — still clear local state and redirect
+  }
+  localStorage.removeItem('access_token');
+  window.location.href = '/signin';
+});
 </script>
 
 <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 <script src="{{ url_for('static', filename='js/dashboard.analyse.js') }}"></script>
 <script src="{{ url_for('static', filename='js/dashboard.results.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dashboard.cv-preview.js') }}"></script>
+{% include 'chatbot.html' %}
+<script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
+
 </body>
 </html>

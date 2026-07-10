@@ -1,0 +1,244 @@
+/* compare2.css — Part 2: verdict, SW, atoms, toasts, animations, responsive */
+
+/* ── 12) Verdict section ── */
+.cmp-verdict-section {
+  background: var(--c-surface);
+  border: 1px solid rgba(124,58,237,.12);
+  border-radius: var(--radius-md);
+  padding: 20px 22px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 16px;
+  animation: cmpFadeUp .4s .10s ease both;
+}
+
+.cmp-verdict-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.cmp-verdict-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--c-text);
+  margin: 0;
+  flex: 1;
+}
+
+.cmp-verdict-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(124,58,237,.08);
+  color: #7C3AED;
+  border: 1px solid rgba(124,58,237,.18);
+}
+
+.cmp-verdict-body {
+  font-size: 13.5px;
+  color: var(--c-text);
+  line-height: 1.8;
+}
+
+.cmp-verdict-para {
+  margin: 0 0 12px;
+}
+
+.cmp-verdict-para:last-child { margin: 0; }
+
+/* ── 13) Strengths & weaknesses ── */
+.cmp-sw-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  animation: cmpFadeUp .4s .15s ease both;
+}
+
+.cmp-sw-card {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.cmp-sw-card__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.cmp-sw-card__title {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--c-text);
+  margin: 0;
+  flex: 1;
+}
+
+.cmp-sw-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cmp-sw-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 12.5px;
+  color: var(--c-text);
+  line-height: 1.5;
+}
+
+.cmp-sw-item__dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.cmp-sw-item__dot--strength {
+  background: rgba(5,150,105,.12);
+  color: #059669;
+}
+
+.cmp-sw-item__dot--weakness {
+  background: rgba(220,38,38,.10);
+  color: #DC2626;
+}
+
+/* ── 14) Shared atoms ── */
+.cmp-cv-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+
+.cmp-cv-label--a {
+  background: rgba(37,99,235,.10);
+  color: #2563EB;
+  border: 1px solid rgba(37,99,235,.22);
+}
+
+.cmp-cv-label--b {
+  background: rgba(6,182,212,.10);
+  color: #0891B2;
+  border: 1px solid rgba(6,182,212,.22);
+}
+
+.cmp-cv-label--sm {
+  padding: 3px 10px;
+  font-size: 11px;
+}
+
+.cmp-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.cmp-pill--pdf {
+  background: rgba(185,28,28,.07);
+  color: #B91C1C;
+  border: 1px solid rgba(185,28,28,.18);
+}
+
+.cmp-pill--docx {
+  background: rgba(29,78,216,.07);
+  color: #1D4ED8;
+  border: 1px solid rgba(29,78,216,.18);
+}
+
+/* Band colours */
+.cmp-band--strong     { color: #059669; }
+.cmp-band--good       { color: #2563EB; }
+.cmp-band--borderline { color: #D97706; }
+.cmp-band--weak       { color: #DC2626; }
+
+/* ── 15) Toasts ── */
+.cmp-toasts {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.cmp-toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 16px;
+  border-radius: 12px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  box-shadow: 0 8px 32px rgba(0,0,0,.16);
+  transform: translateX(120%);
+  opacity: 0;
+  transition: transform .35s cubic-bezier(.34,1.56,.64,1), opacity .3s;
+  pointer-events: all;
+  max-width: 300px;
+  background: var(--c-text);
+}
+
+.cmp-toast--show    { transform: translateX(0); opacity: 1; }
+.cmp-toast--success { background: #059669; }
+.cmp-toast--error   { background: #DC2626; }
+.cmp-toast--info    { background: #2563EB; }
+
+/* ── 16) Animations ── */
+@keyframes cmpFadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes cmpPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: .5; transform: scale(1.5); }
+}
+
+@keyframes cmpRingSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── 17) Responsive ── */
+@media (max-width: 960px) {
+  .cmp-score-row {
+    grid-template-columns: 160px 1fr 160px;
+  }
+}
+
+@media (max-width: 768px) {
+  .cmp-main { padding: 14px 16px 40px; }
+  .cmp-upload-grid { grid-template-columns: 1fr; }
+  .cmp-vs-divider { padding: 10px 0; }
+  .cmp-vs-ring { width: 36px; height: 36px; font-size: 10px; }
+  .cmp-score-row { grid-template-columns: 1fr; }
+  .cmp-criteria-table { order: -1; }
+  .cmp-sw-grid { grid-template-columns: 1fr; }
+  .cmp-winner-banner { flex-direction: column; align-items: flex-start; }
+}
+
+@media (max-width: 480px) {
+  .cmp-cta { flex-direction: column; align-items: flex-start; }
+}

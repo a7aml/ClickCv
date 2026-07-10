@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>MyCv — Find Job</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --c-bg:      #F0F4FF;
+  --c-surface: #ffffff;
+  --c-border:  rgba(37,99,235,0.10);
+  --c-text:    #0f1624;
+  --c-muted:   rgba(15,22,36,0.55);
+  --c-primary: #2563EB;
+  --c-accent:  #06B6D4;
+  --grad-main: linear-gradient(135deg,#2563EB 0%,#06B6D4 100%);
+  --grad-bg:   linear-gradient(160deg,#EEF2FF 0%,#E0F2FE 50%,#F0FDF4 100%);
+  --shadow-sm: 0 2px 12px rgba(37,99,235,0.08);
+  --shadow-md: 0 8px 32px rgba(37,99,235,0.12);
+  --color-danger:#ef4444;
+  --font:'Plus Jakarta Sans',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--c-bg);color:var(--c-text);overflow:hidden;}
+a{color:inherit;text-decoration:none}
+
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;
+  background:
+    radial-gradient(ellipse 70% 55% at 5% 0%,rgba(37,99,235,0.10) 0%,transparent 65%),
+    radial-gradient(ellipse 55% 50% at 95% 15%,rgba(6,182,212,0.09) 0%,transparent 60%),
+    radial-gradient(ellipse 65% 55% at 50% 65%,rgba(37,99,235,0.06) 0%,transparent 65%),
+    var(--grad-bg);
+  pointer-events:none;
+}
+
+.app-shell{height:100vh;display:flex;flex-direction:column;position:relative;z-index:1;}
+
+/* ── Topbar ── */
+.topbar{flex-shrink:0;height:58px;background:rgba(240,244,255,0.88);backdrop-filter:blur(18px);border-bottom:1px solid var(--c-border);position:sticky;top:0;z-index:200;}
+.topbar__inner{max-width:1400px;margin-inline:auto;padding:0 28px;height:100%;display:flex;align-items:center;justify-content:space-between;gap:20px;}
+.brand{display:inline-flex;align-items:center;gap:9px;font-weight:800;font-size:16px;color:var(--c-text)}
+.brand__mark{width:32px;height:32px;display:grid;place-items:center;border-radius:9px;color:#fff;font-weight:900;font-size:14px;background:var(--grad-main);box-shadow:0 4px 12px rgba(37,99,235,.28)}
+.topbar__nav{display:flex;align-items:center;gap:2px;margin-left:auto}
+.topbar__link{font-weight:500;font-size:13.5px;color:var(--c-muted);padding:6px 12px;border-radius:999px;transition:all .2s}
+.topbar__link:hover{color:var(--c-text);background:rgba(37,99,235,.06)}
+.topbar__link--active{color:var(--c-primary);background:rgba(37,99,235,.08);font-weight:600}
+.btn--logout{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;font-family:var(--font);font-size:12.5px;font-weight:600;color:var(--c-muted);background:transparent;border:1px solid var(--c-border);cursor:pointer;transition:.18s}
+.btn--logout:hover{color:var(--color-danger);border-color:rgba(220,38,38,.22);background:rgba(220,38,38,.06)}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 20px;min-height:44px;border-radius:999px;font-weight:600;font-size:14px;border:1px solid transparent;cursor:pointer;transition:transform .18s,box-shadow .18s;font-family:var(--font);}
+.btn:hover{transform:translateY(-1px)}
+.btn--primary{background:var(--grad-main);color:#fff;box-shadow:0 4px 14px rgba(37,99,235,.28)}
+.btn--primary:hover{box-shadow:0 6px 20px rgba(37,99,235,.38)}
+.btn--secondary{background:rgba(37,99,235,.07);color:var(--c-primary);border-color:rgba(37,99,235,.18)}
+.btn--ghost{background:#fff;color:var(--c-text);border-color:var(--c-border)}
+.btn--full{width:100%}
+.btn--sm{min-height:36px;padding:0 14px;font-size:13px}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+/* ── Main layout ── */
+.fj-main{flex:1;display:flex;height:calc(100vh - 58px);overflow:hidden}
+.upload-view{display:flex;width:100%;height:100%}
+.results-view{display:flex;width:100%;height:100%}
+
+/* ══════════════════════════════════════════════════════
+   LEFT COLUMN — 50% width
+══════════════════════════════════════════════════════ */
+.fj-left{
+  width:50%;
+  min-width:340px;
+  flex-shrink:0;
+  background:rgba(255,255,255,0.72);
+  backdrop-filter:blur(12px);
+  border-right:1px solid var(--c-border);
+  padding:24px 20px;
+  overflow-y:auto;
+}
+.fj-context-card{display:flex;flex-direction:column;gap:20px}
+.fj-user-block{display:flex;align-items:center;gap:14px}
+.fj-user-block__avatar{width:48px;height:48px;background:var(--grad-main);border-radius:28px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:20px;flex-shrink:0;}
+.fj-user-block__label{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--c-muted);letter-spacing:.05em}
+.fj-user-block__name{font-size:18px;font-weight:800;color:var(--c-text);margin-top:2px}
+.fj-divider{height:1px;background:var(--c-border);margin:4px 0}
+.fj-stats{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:14px 8px;background:rgba(37,99,235,0.04);border-radius:16px;border:1px solid rgba(37,99,235,0.06);}
+.fj-stat{text-align:center;flex:1;}
+.fj-stat__val{font-size:22px;font-weight:800;color:var(--c-text);display:block}
+.fj-stat__lbl{font-size:10px;font-weight:600;color:var(--c-muted);text-transform:uppercase}
+.fj-stat__sep{width:1px;height:24px;background:var(--c-border)}
+.fj-cvs-header{display:flex;align-items:center;gap:8px;margin-top:4px;}
+.fj-cvs-header__title{font-size:12px;font-weight:800;text-transform:uppercase;color:var(--c-muted);flex:1;}
+.fj-cvs-header__count{background:rgba(37,99,235,.1);padding:2px 8px;border-radius:40px;font-size:11px;font-weight:700;color:var(--c-primary)}
+.fj-cvs-list{display:flex;flex-direction:column;gap:8px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(37,99,235,0.2) transparent;}
+.fj-cvs-list::-webkit-scrollbar{width:4px}
+.fj-cvs-list::-webkit-scrollbar-thumb{background:rgba(37,99,235,0.25);border-radius:10px}
+.fj-cv-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:#fff;border:1px solid var(--c-border);cursor:pointer;transition:all .2s;}
+.fj-cv-item:hover{background:rgba(37,99,235,.04);border-color:var(--c-primary);transform:translateX(2px)}
+.fj-cv-item.active{background:rgba(37,99,235,.08);border-left:3px solid var(--c-primary)}
+.fj-cv-item__icon{width:36px;height:36px;background:rgba(37,99,235,.08);border-radius:12px;display:grid;place-items:center;color:var(--c-primary);flex-shrink:0}
+.fj-cv-item__info{flex:1;min-width:0}
+.fj-cv-item__name{font-size:13px;font-weight:700;color:var(--c-text);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fj-cv-item__meta{font-size:10px;color:var(--c-muted);display:flex;gap:6px;margin-top:3px}
+.fj-cv-item__score{font-size:14px;font-weight:800;flex-shrink:0}
+.fj-cvs-empty{font-size:12px;color:var(--c-muted);text-align:center;padding:28px 12px;border:1px dashed var(--c-border);border-radius:12px;}
+.fj-history-link{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--c-primary);margin-top:12px}
+
+/* ══════════════════════════════════════════════════════
+   RIGHT COLUMN
+══════════════════════════════════════════════════════ */
+.fj-right{flex:1;display:flex;align-items:center;justify-content:center;padding:32px;overflow-y:auto;}
+.fj-upload-wrap{max-width:540px;width:100%;background:rgba(255,255,255,0.88);backdrop-filter:blur(8px);border-radius:32px;padding:36px 32px;box-shadow:var(--shadow-md);border:1px solid var(--c-border);}
+.fj-eyebrow{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--c-primary);margin-bottom:12px}
+.fj-eyebrow__dot{width:6px;height:6px;background:var(--c-accent);border-radius:50%;animation:fjPulse 2s ease-in-out infinite;}
+.fj-title{font-size:28px;font-weight:800;letter-spacing:-.02em;margin-bottom:8px}
+.fj-subtitle{font-size:14px;color:var(--c-muted);margin-bottom:28px;line-height:1.5}
+
+/* ── Drop zone ── */
+.drop-zone{border:2px dashed rgba(37,99,235,.25);border-radius:24px;padding:32px 20px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(37,99,235,.02);}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--c-primary);background:rgba(37,99,235,.06)}
+.drop-zone.dz--filled{cursor:default;border-style:solid;border-color:rgba(37,99,235,0.25);padding:16px 20px;}
+.drop-zone__icon-wrap{width:56px;height:56px;margin:0 auto 12px;color:var(--c-primary)}
+.drop-zone__icon{width:56px;height:56px}
+.drop-zone__title{font-size:18px;font-weight:800;margin-bottom:4px}
+.drop-zone__subtitle{font-size:13px;color:var(--c-muted);margin-bottom:16px}
+.drop-zone__formats{display:flex;justify-content:center;gap:12px}
+.format-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;background:#fff;border-radius:40px;border:1px solid var(--c-border);font-size:11px;font-weight:700}
+.format-pill__dot{width:6px;height:6px;border-radius:50%}
+.format-pill--pdf .format-pill__dot{background:#DC2626}
+.format-pill--docx .format-pill__dot{background:#2563EB}
+
+/* ── DZ Card (filled state) ── */
+.dz-card{display:flex;align-items:center;gap:14px;text-align:left;animation:fjCardIn .35s cubic-bezier(.34,1.56,.64,1) both;}
+.dz-card__icon{position:relative;width:48px;height:48px;border-radius:16px;background:rgba(37,99,235,.08);border:1.5px solid rgba(37,99,235,0.2);display:grid;place-items:center;color:#2563EB;flex-shrink:0;}
+.dz-card__badge{position:absolute;bottom:-6px;right:-6px;width:20px;height:20px;background:#059669;border-radius:20px;display:grid;place-items:center;color:#fff;font-size:11px;font-weight:800;}
+.dz-card__body{flex:1;min-width:0;}
+.dz-card__name{font-weight:700;font-size:14px;color:#0f1624;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;}
+.dz-card__meta{font-size:11px;color:var(--c-muted);margin-bottom:4px;}
+.dz-card__status{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:#059669;}
+.dz-card__dot{width:6px;height:6px;background:#059669;border-radius:50%;animation:fjDotPulse 2s ease-in-out infinite;}
+.dz-card__actions{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+
+/* ── DZ Buttons ── */
+.dz-btn{display:inline-flex;align-items:center;gap:5px;font-family:var(--font);font-size:12px;font-weight:600;border:1px solid;border-radius:40px;cursor:pointer;transition:all .15s;padding:6px 12px;background:transparent;}
+.dz-btn:hover{transform:translateY(-1px);}
+.dz-btn--replace{color:#2563EB;border-color:rgba(37,99,235,.25);background:rgba(37,99,235,.07);}
+.dz-btn--replace:hover{background:rgba(37,99,235,.14);}
+.dz-btn--remove{color:#DC2626;border-color:rgba(220,38,38,.25);background:rgba(220,38,38,.05);padding:6px 10px;}
+.dz-btn--remove:hover{background:rgba(220,38,38,.12);}
+
+/* ── Country selector ── */
+.fj-country-select{margin-top:20px}
+.fj-country-label{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;text-transform:uppercase;margin-bottom:8px;color:var(--c-text);}
+.fj-country-dropdown{width:100%;padding:12px 16px;border-radius:16px;border:1.5px solid var(--c-border);font-family:var(--font);font-size:14px;background:#fff;cursor:pointer;color:var(--c-text);}
+.country-error{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:12px;color:#DC2626;background:rgba(220,38,38,.05);padding:8px 12px;border-radius:12px;}
+.hide-error{display:none!important;}
+
+/* ══════════════════════════════════════════════════════
+   RESULTS VIEW
+══════════════════════════════════════════════════════ */
+.results-view{display:grid;grid-template-columns:1fr 320px;gap:0;height:100%}
+.jobs-panel{background:#fff;border-radius:24px 0 0 24px;margin:20px 0 20px 20px;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;}
+.jobs-panel__header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap;}
+.jobs-panel__title{margin:0;font-size:20px;font-weight:800;color:#0f1624}
+.jobs-panel__subtitle{margin:4px 0 0;font-size:13px;color:var(--c-muted)}
+.jobs-list{display:flex;flex-direction:column;gap:12px}
+.job-card{background:#fff;border:1px solid var(--c-border);border-radius:20px;padding:16px;transition:all .2s;display:block;text-decoration:none;color:inherit;}
+.job-card:hover{box-shadow:var(--shadow-sm);transform:translateY(-2px);border-color:rgba(37,99,235,.2);}
+.job-card__top{display:flex;gap:14px}
+.job-card__logo{width:44px;height:44px;background:var(--grad-main);border-radius:14px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:20px;flex-shrink:0;}
+.job-card__info{flex:1;min-width:0;}
+.job-card__title{font-size:15px;font-weight:700;color:#0f1624;margin-bottom:4px;}
+.job-card__company{font-size:13px;color:var(--c-primary);margin-bottom:8px;}
+.job-card__meta{display:flex;gap:8px;flex-wrap:wrap;}
+.job-meta-pill{font-size:11px;background:rgba(37,99,235,.07);padding:3px 10px;border-radius:999px;color:var(--c-muted);}
+.job-card__match{display:flex;flex-direction:column;gap:6px;align-items:flex-end;min-width:120px;flex-shrink:0;}
+.match-badge{font-size:11px;font-weight:800;padding:3px 10px;border-radius:999px;border:1px solid;white-space:nowrap;}
+.match-badge--good{background:#16A34A20;color:#16A34A;border-color:#16A34A40;}
+.match-badge--fair{background:#D9770620;color:#D97706;border-color:#D9770640;}
+.match-badge--poor{background:#DC262620;color:#DC2626;border-color:#DC262640;}
+.match-bar{width:100%;height:6px;background:rgba(37,99,235,.08);border-radius:999px;overflow:hidden;}
+.match-bar__fill{height:6px;border-radius:999px;transition:width .8s cubic-bezier(.4,0,.2,1);}
+
+/* ── CV Panel (results right side) ── */
+.cv-panel{background:#fff;border-left:1px solid var(--c-border);padding:24px;display:flex;flex-direction:column;gap:16px;}
+.cv-card{background:#f8faff;border-radius:24px;padding:24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:16px;}
+.cv-card__score{position:relative;width:110px;height:110px;}
+.score-ring{width:110px;height:110px;}
+.score-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.score-num{font-size:26px;font-weight:800;background:var(--grad-main);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.score-sub{font-size:11px;font-weight:600;color:var(--c-muted);}
+.cv-card__info{width:100%;}
+.cv-card__filename{margin:0 0 4px;font-size:14px;font-weight:700;color:#0f1624;word-break:break-word;}
+.cv-card__meta{margin:0 0 10px;font-size:12px;color:var(--c-muted);}
+.cv-card__industry{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:999px;background:rgba(37,99,235,.08);color:var(--c-primary);border:1px solid rgba(37,99,235,.14);font-size:12px;font-weight:600;}
+.cv-card__actions{width:100%;display:flex;flex-direction:column;gap:8px;}
+
+/* ── Empty state ── */
+.jobs-empty{text-align:center;padding:64px 32px;background:#fff;border:1px solid var(--c-border);border-radius:18px;}
+.jobs-empty__icon{font-size:48px;margin-bottom:12px;opacity:.5;}
+.jobs-empty__title{margin:0 0 8px;font-size:18px;font-weight:800;color:#0f1624}
+.jobs-empty__text{margin:0 auto;font-size:13px;color:var(--c-muted);line-height:1.6;max-width:360px;}
+
+/* ── Toast ── */
+.cv-toast{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;align-items:center;gap:10px;padding:12px 18px;border-radius:12px;background:#0f1624;color:#fff;font-family:var(--font);font-size:13px;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,.18);transform:translateY(16px);opacity:0;transition:transform .3s ease,opacity .3s ease;max-width:360px;pointer-events:none;}
+.cv-toast--show{transform:translateY(0);opacity:1;pointer-events:all;}
+.cv-toast--error{background:#DC2626;}
+.cv-toast--success{background:#059669;}
+
+/* ── Animations ── */
+@keyframes fjPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.5)}}
+@keyframes fjCardIn{from{opacity:0;transform:scale(.94) translateY(6px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes fjDotPulse{0%,100%{box-shadow:0 0 0 0 rgba(5,150,105,.5)}50%{box-shadow:0 0 0 5px rgba(5,150,105,0)}}
+@keyframes slideIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  .fj-left{width:100%;min-width:unset;border-right:none;border-bottom:1px solid var(--c-border);}
+  .upload-view{flex-direction:column;overflow-y:auto;}
+  .results-view{grid-template-columns:1fr;}
+  .cv-panel{border-left:none;border-top:1px solid var(--c-border);}
+  .fj-main{height:auto;overflow:visible;}
+}
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar">
+    <div class="topbar__inner">
+      <a class="brand" href="/"><span class="brand__mark">C</span><span>MyCv</span></a>
+      <nav class="topbar__nav">
+        <a class="topbar__link" href="/build-cv">Build CV</a>
+        <a class="topbar__link" href="/rebuild">Rebuild CV</a>
+        <a class="topbar__link" href="/compare-cv">Compare CV</a>
+        <a class="topbar__link" href="/dashboard">Analyse CV</a>
+        <a class="topbar__link" href="/cover-letter">Cover Letter</a>
+        <a class="topbar__link topbar__link--active" href="/find-job">Find Job</a>
+        <a class="topbar__link" href="/history">History</a>
+        <a class="topbar__link" href="/profile">Profile</a>
+      </nav>
+      <button class="btn--logout" id="logout-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>Logout</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="fj-main" id="main-layout">
+
+    <!-- ═══════════════════════════════════
+         UPLOAD VIEW
+    ═══════════════════════════════════ -->
+    <div class="upload-view" id="upload-view">
+
+      <!-- LEFT: history panel -->
+      <aside class="fj-left">
+        <div class="fj-context-card">
+          <div class="fj-user-block">
+            <div class="fj-user-block__avatar" id="fj-avatar">A</div>
+            <div>
+              <p class="fj-user-block__label">WELCOME BACK</p>
+              <h2 class="fj-user-block__name" id="fj-name">User</h2>
+            </div>
+          </div>
+
+          <div class="fj-divider"></div>
+
+          <div class="fj-stats">
+            <div class="fj-stat"><span class="fj-stat__val" id="fj-total">—</span><span class="fj-stat__lbl">ANALYSES</span></div>
+            <div class="fj-stat__sep"></div>
+            <div class="fj-stat"><span class="fj-stat__val" id="fj-avg">—</span><span class="fj-stat__lbl">AVG SCORE</span></div>
+            <div class="fj-stat__sep"></div>
+            <div class="fj-stat"><span class="fj-stat__val" id="fj-best">—</span><span class="fj-stat__lbl">BEST SCORE</span></div>
+          </div>
+
+          <div class="fj-divider"></div>
+
+          <div class="fj-cvs-header">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span class="fj-cvs-header__title">ANALYSED CVS</span>
+            <span class="fj-cvs-header__count" id="fj-count">0</span>
+          </div>
+
+          <div class="fj-cvs-list" id="fj-cvs-list">
+            <div class="fj-cvs-empty" id="fj-cvs-empty">No analyses yet. Analyse a CV first.</div>
+          </div>
+
+          <a href="/history" class="fj-history-link">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            View full history
+          </a>
+        </div>
+      </aside>
+
+      <!-- RIGHT: upload card -->
+      <main class="fj-right">
+        <div class="fj-upload-wrap">
+          <div class="fj-eyebrow"><span class="fj-eyebrow__dot"></span>AI-Powered Job Matching</div>
+          <h1 class="fj-title">Find Your Perfect Job</h1>
+          <p class="fj-subtitle">Upload your CV or click a previous CV from the left panel</p>
+
+          <div class="drop-zone" id="drop-zone">
+            <input type="file" id="file-input" accept=".pdf,.docx,.doc" hidden/>
+            <div class="drop-zone__icon-wrap">
+              <svg class="drop-zone__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+            </div>
+            <h2 class="drop-zone__title">Drop your CV here</h2>
+            <p class="drop-zone__subtitle">or <strong>click to browse</strong> from your device</p>
+            <div class="drop-zone__formats">
+              <span class="format-pill format-pill--pdf"><span class="format-pill__dot"></span>PDF</span>
+              <span class="format-pill format-pill--docx"><span class="format-pill__dot"></span>DOCX</span>
+            </div>
+          </div>
+
+          <div class="fj-country-select">
+            <label class="fj-country-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              FILTER BY COUNTRY <span style="color:#DC2626">*</span>
+            </label>
+            <select id="country-select" class="fj-country-dropdown">
+              <option value="">— Select a country —</option>
+              <option value="malaysia">🇲🇾 Malaysia</option>
+              <option value="singapore">🇸🇬 Singapore</option>
+              <option value="united_states">🇺🇸 United States</option>
+              <option value="united_kingdom">🇬🇧 United Kingdom</option>
+              <option value="australia">🇦🇺 Australia</option>
+              <option value="canada">🇨🇦 Canada</option>
+              <option value="uae">🇦🇪 UAE</option>
+              <option value="germany">🇩🇪 Germany</option>
+              <option value="france">🇫🇷 France</option>
+              <option value="india">🇮🇳 India</option>
+            </select>
+            <div id="country-error-msg" class="country-error hide-error">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              Please select a country before searching.
+            </div>
+          </div>
+
+          <button class="btn btn--primary btn--full" id="search-btn" style="margin-top:16px;display:none" disabled>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Search Matching Jobs
+          </button>
+        </div>
+      </main>
+    </div><!-- /upload-view -->
+
+    <!-- ═══════════════════════════════════
+         RESULTS VIEW
+    ═══════════════════════════════════ -->
+    <div class="results-view" id="results-view" style="display:none">
+      <div class="jobs-panel">
+        <div class="jobs-panel__header">
+          <div>
+            <h2 class="jobs-panel__title" id="jobs-title">0 jobs found</h2>
+            <p class="jobs-panel__subtitle" id="jobs-subtitle"></p>
+          </div>
+          <button class="btn btn--ghost btn--sm" id="back-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            Upload New CV
+          </button>
+        </div>
+        <div class="jobs-list" id="jobs-list"></div>
+      </div>
+
+      <div class="cv-panel">
+        <div class="cv-card">
+          <div class="cv-card__score">
+            <svg class="score-ring" viewBox="0 0 120 120">
+              <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(37,99,235,0.08)" stroke-width="8"/>
+              <circle id="score-circle" cx="60" cy="60" r="54" fill="none" stroke="url(#sg)" stroke-width="8"
+                stroke-linecap="round" transform="rotate(-90 60 60)"
+                stroke-dasharray="339.292" stroke-dashoffset="339.292"/>
+              <defs><linearGradient id="sg"><stop offset="0%" stop-color="#2563EB"/><stop offset="100%" stop-color="#06B6D4"/></linearGradient></defs>
+            </svg>
+            <div class="score-label">
+              <span class="score-num" id="cv-score">--</span>
+              <span class="score-sub">ATS Score</span>
+            </div>
+          </div>
+          <div class="cv-card__info">
+            <h3 class="cv-card__filename" id="cv-filename">Resume.pdf</h3>
+            <p class="cv-card__meta" id="cv-meta"></p>
+            <span class="cv-card__industry" id="cv-industry">Auto-detected</span>
+          </div>
+          <div class="cv-card__actions">
+            <button class="btn btn--secondary btn--full" id="replace-cv-btn">Replace CV</button>
+          </div>
+        </div>
+      </div>
+    </div><!-- /results-view -->
+
+  </div><!-- /fj-main -->
+</div><!-- /app-shell -->
+
+<div class="cv-toast" id="toast"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  const API = '';
+  let currentFile     = null;
+  let currentAnalysis = null;
+  let originalDzHTML  = '';   // saved once on init
+
+  /* ── DOM refs ── */
+  const uploadView   = document.getElementById('upload-view');
+  const resultsView  = document.getElementById('results-view');
+  const dropZone     = document.getElementById('drop-zone');
+  const fileInput    = document.getElementById('file-input');
+  const searchBtn    = document.getElementById('search-btn');
+  const backBtn      = document.getElementById('back-btn');
+  const jobsList     = document.getElementById('jobs-list');
+  const countrySelect= document.getElementById('country-select');
+  const countryError = document.getElementById('country-error-msg');
+
+  /* ── Utilities ── */
+  function token() {
+    return localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+  }
+
+  function showToast(msg, type = 'info') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `cv-toast cv-toast--${type} cv-toast--show`;
+    setTimeout(() => t.classList.remove('cv-toast--show'), 4000);
+  }
+
+  function fmt(b) {
+    return b < 1024 ? b + ' B' : b < 1048576 ? (b/1024).toFixed(1)+' KB' : (b/1048576).toFixed(1)+' MB';
+  }
+
+  function matchColor(l) {
+    return l === 'good' ? '#16A34A' : l === 'fair' ? '#D97706' : '#DC2626';
+  }
+
+  /* ── Search button state ── */
+  function updateSearchBtn() {
+    const hasCv = currentFile !== null || currentAnalysis !== null;
+    if (!hasCv) { searchBtn.style.display = 'none'; return; }
+    searchBtn.style.display = 'block';
+    const ok = countrySelect.value !== '';
+    searchBtn.disabled = !ok;
+    ok ? countryError.classList.add('hide-error') : countryError.classList.remove('hide-error');
+  }
+
+  /* ══════════════════════════════════════
+     RESET — clear CV selection completely
+  ══════════════════════════════════════ */
+  function resetCV() {
+    currentFile     = null;
+    currentAnalysis = null;
+    dropZone.classList.remove('dz--filled');
+    dropZone.innerHTML = originalDzHTML;
+    fileInput.value = '';
+    searchBtn.style.display = 'none';
+    searchBtn.disabled = true;
+    // deselect left panel
+    document.querySelectorAll('.fj-cv-item').forEach(el => el.classList.remove('active'));
+    // re-attach drop zone listeners (innerHTML was replaced)
+    attachDropZone();
+  }
+
+  /* ══════════════════════════════════════
+     DROP ZONE LISTENERS
+  ══════════════════════════════════════ */
+  function attachDropZone() {
+    dropZone.addEventListener('click',     () => fileInput.click());
+    dropZone.addEventListener('dragover',  e  => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', ()  => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop',      e  => {
+      e.preventDefault();
+      dropZone.classList.remove('drag-over');
+      if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+    });
+  }
+
+  fileInput.addEventListener('change', e => {
+    if (e.target.files.length) handleFile(e.target.files[0]);
+  });
+
+  countrySelect.addEventListener('change', () => {
+    if (currentFile || currentAnalysis) updateSearchBtn();
+  });
+
+  /* ══════════════════════════════════════
+     HANDLE FILE SELECT
+  ══════════════════════════════════════ */
+  function handleFile(file) {
+    const valid = ['application/pdf',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/msword'];
+    if (!valid.includes(file.type)) { showToast('Please upload PDF or DOCX', 'error'); return; }
+    if (file.size > 5 * 1024 * 1024)  { showToast('Max file size is 5 MB', 'error'); return; }
+
+    currentFile     = file;
+    currentAnalysis = null;
+    document.querySelectorAll('.fj-cv-item').forEach(el => el.classList.remove('active'));
+
+    renderDzCard({
+      name:   file.name,
+      meta:   fmt(file.size),
+      status: 'Ready to analyze'
+    }, 'upload-replace-btn', 'upload-remove-btn');
+
+    updateSearchBtn();
+    showToast('CV uploaded successfully!', 'success');
+  }
+
+  /* ══════════════════════════════════════
+     RENDER DZ CARD (reusable)
+     Renders the filled drop-zone card with Replace + ✕
+  ══════════════════════════════════════ */
+  function renderDzCard({ name, meta, status }, replaceBtnId, removeBtnId) {
+    dropZone.classList.add('dz--filled');
+    dropZone.innerHTML = `
+      <div class="dz-card">
+        <div class="dz-card__icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+          <div class="dz-card__badge">✓</div>
+        </div>
+        <div class="dz-card__body">
+          <div class="dz-card__name">${name}</div>
+          <div class="dz-card__meta">${meta}</div>
+          <div class="dz-card__status"><span class="dz-card__dot"></span>${status}</div>
+        </div>
+        <div class="dz-card__actions">
+          <button class="dz-btn dz-btn--replace" id="${replaceBtnId}">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+            Replace
+          </button>
+          <button class="dz-btn dz-btn--remove" id="${removeBtnId}" title="Remove CV">✕</button>
+        </div>
+      </div>`;
+
+    // Replace button
+    document.getElementById(replaceBtnId).onclick = e => {
+      e.stopPropagation();
+      fileInput.click();
+    };
+
+    // ✕ Remove button — clears everything
+    document.getElementById(removeBtnId).onclick = e => {
+      e.stopPropagation();
+      resetCV();
+    };
+  }
+
+  /* ══════════════════════════════════════
+     SEARCH BUTTON
+  ══════════════════════════════════════ */
+  searchBtn.addEventListener('click', async () => {
+    if (!currentFile && !currentAnalysis) {
+      showToast('Please upload or select a CV first', 'error'); return;
+    }
+    if (!countrySelect.value) {
+      showToast('Please select a country', 'error');
+      countryError.classList.remove('hide-error'); return;
+    }
+
+    const country = countrySelect.value;
+    searchBtn.disabled = true;
+    searchBtn.innerHTML = `<span style="width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block"></span> Searching...`;
+
+    try {
+      let analysisId   = null;
+      let detectedMajor = null;
+
+      if (currentAnalysis) {
+        // CV selected from left panel
+        analysisId    = currentAnalysis.analysis_id;
+        detectedMajor = currentAnalysis.major || 'technology';
+      } else {
+        // Fresh upload
+        const fd = new FormData();
+        fd.append('file', currentFile);
+        fd.append('auto_detect', 'true');
+        const upRes = await fetch(`${API}/analysis/upload`, {
+          method: 'POST', headers: { 'Authorization': `Bearer ${token()}` }, body: fd
+        });
+        if (!upRes.ok) throw new Error('Upload failed');
+        const upData = await upRes.json();
+
+        detectedMajor = upData.major || 'technology';
+
+        const runRes = await fetch(`${API}/analysis/run`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token()}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ resume_id: upData.resume_id, major: detectedMajor })
+        });
+        if (!runRes.ok) throw new Error('Analysis failed');
+        const runData = await runRes.json();
+        analysisId    = runData.analysis_id;
+        currentAnalysis = { ...runData, major: detectedMajor, filename: currentFile.name };
+      }
+
+      // Fetch jobs
+      const jobsRes = await fetch(`${API}/jobs/search?major=${detectedMajor}&country=${country}`, {
+        headers: { 'Authorization': `Bearer ${token()}` }
+      });
+      if (!jobsRes.ok) throw new Error('Failed to fetch jobs');
+      let jobs = (await jobsRes.json()).jobs || [];
+
+      // Match
+      if (jobs.length) {
+        const mRes = await fetch(`${API}/jobs/match`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token()}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ analysis_id: analysisId, jobs })
+        });
+        if (mRes.ok) jobs = (await mRes.json()).matched_jobs || jobs;
+      }
+
+      renderResults(jobs, detectedMajor);
+
+    } catch (err) {
+      showToast(err.message || 'Something went wrong', 'error');
+    } finally {
+      searchBtn.disabled = false;
+      searchBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Search Matching Jobs`;
+    }
+  });
+
+  /* ══════════════════════════════════════
+     RENDER RESULTS
+  ══════════════════════════════════════ */
+  function renderResults(jobs, major) {
+    const hasMatch = jobs[0] && jobs[0].match_score !== undefined;
+    document.getElementById('jobs-title').textContent    = `${jobs.length} jobs found`;
+    document.getElementById('jobs-subtitle').textContent = hasMatch ? 'Sorted by match score' : 'Live results';
+
+    jobsList.innerHTML = jobs.length ? jobs.map((job, idx) => {
+      const score = job.match_score || 0;
+      const label = job.match_label || 'fair';
+      const color = job.match_color || matchColor(label);
+      const logo  = (job.company || '?')[0].toUpperCase();
+      const matchHtml = hasMatch ? `
+        <div class="job-card__match">
+          <span class="match-badge match-badge--${label}">${Math.round(score)}% match</span>
+          <div class="match-bar"><div class="match-bar__fill" data-target="${Math.round(score)}" style="width:0;background:${color}"></div></div>
+        </div>` : '';
+      return `<a href="${job.url || job.link || '#'}" target="_blank" rel="noopener" class="job-card"
+        style="animation:slideIn .3s ${idx * 0.05}s ease both;opacity:0">
+        <div class="job-card__top">
+          <div class="job-card__logo">${logo}</div>
+          <div class="job-card__info">
+            <div class="job-card__title">${job.title || 'Untitled'}</div>
+            <div class="job-card__company">${job.company || 'Unknown'}</div>
+            <div class="job-card__meta">
+              ${job.location ? `<span class="job-meta-pill">📍 ${job.location}</span>` : ''}
+              ${job.job_type ? `<span class="job-meta-pill">⏱ ${job.job_type}</span>` : ''}
+              ${job.salary   ? `<span class="job-meta-pill">💰 ${job.salary}</span>`   : ''}
+            </div>
+          </div>
+          ${matchHtml}
+        </div></a>`;
+    }).join('') : `<div class="jobs-empty">
+        <div class="jobs-empty__icon">😕</div>
+        <h3 class="jobs-empty__title">No jobs found</h3>
+        <p class="jobs-empty__text">Try a different CV or check back later.</p>
+      </div>`;
+
+    setTimeout(() => {
+      document.querySelectorAll('.match-bar__fill').forEach(b => { b.style.width = b.dataset.target + '%'; });
+    }, 100);
+
+    // Populate CV card
+    const filename = currentFile ? currentFile.name : (currentAnalysis?.filename || 'CV');
+    const meta     = currentFile ? fmt(currentFile.size) : 'Previously analysed';
+    document.getElementById('cv-filename').textContent = filename;
+    document.getElementById('cv-meta').textContent     = meta;
+    document.getElementById('cv-industry').textContent = (major || 'technology').charAt(0).toUpperCase() + (major || 'technology').slice(1);
+    const score = Math.round(currentAnalysis?.overall_score || 0);
+    document.getElementById('cv-score').textContent = score;
+    const circ = 339.292, off = circ - (score / 100) * circ;
+    setTimeout(() => { document.getElementById('score-circle').style.strokeDashoffset = off; }, 150);
+
+    uploadView.style.display  = 'none';
+    resultsView.style.display = 'grid';
+  }
+
+  /* ── Back / Replace buttons ── */
+  backBtn.addEventListener('click', () => {
+    uploadView.style.display  = 'flex';
+    resultsView.style.display = 'none';
+    resetCV();
+  });
+
+  document.getElementById('replace-cv-btn').addEventListener('click', () => backBtn.click());
+
+  /* ══════════════════════════════════════
+     LOAD HISTORY (left panel)
+  ══════════════════════════════════════ */
+  async function loadHistory() {
+    try {
+      const res = await fetch('/history/analyses', { headers: { 'Authorization': `Bearer ${token()}` } });
+      if (!res.ok) return;
+      const { analyses = [] } = await res.json();
+
+      document.getElementById('fj-count').textContent = analyses.length;
+
+      if (analyses.length) {
+        const scores = analyses.map(a => a.overall_score || 0);
+        const avg    = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+        const best   = Math.round(Math.max(...scores));
+        document.getElementById('fj-total').textContent = analyses.length;
+        document.getElementById('fj-avg').textContent   = avg + '%';
+        document.getElementById('fj-best').textContent  = best + '%';
+        document.getElementById('fj-best').style.color  = best >= 75 ? '#059669' : best >= 65 ? '#2563EB' : best >= 50 ? '#D97706' : '#DC2626';
+        document.getElementById('fj-cvs-empty').style.display = 'none';
+
+        const listDiv = document.getElementById('fj-cvs-list');
+        listDiv.innerHTML = '';
+
+        const emoji = m => ({ technology:'💻', medical:'🏥', engineering:'⚙️', financial:'📊', marketing:'📢' }[m] || '📄');
+        const rel   = iso => {
+          const diff = Math.floor((Date.now() - new Date(iso)) / 1000);
+          if (diff < 60)     return 'just now';
+          if (diff < 3600)   return Math.floor(diff / 60) + 'm ago';
+          if (diff < 86400)  return Math.floor(diff / 3600) + 'h ago';
+          if (diff < 604800) return Math.floor(diff / 86400) + 'd ago';
+          return new Date(iso).toLocaleDateString('en-MY', { day:'numeric', month:'short' });
+        };
+
+        analyses.forEach(a => {
+          const score = Math.round(a.overall_score || 0);
+          const col   = score >= 75 ? '#059669' : score >= 65 ? '#2563EB' : score >= 50 ? '#D97706' : '#DC2626';
+          const name  = a.filename || 'CV';
+          const trunc = name.length > 28 ? name.slice(0, 26) + '…' : name;
+
+          const item = document.createElement('div');
+          item.className = 'fj-cv-item';
+          item.innerHTML = `
+            <div class="fj-cv-item__icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+              </svg>
+            </div>
+            <div class="fj-cv-item__info">
+              <span class="fj-cv-item__name" title="${name}">${trunc}</span>
+              <div class="fj-cv-item__meta">${emoji(a.major)} ${a.major} · ${rel(a.created_at)}</div>
+            </div>
+            <span class="fj-cv-item__score" style="color:${col}">${score}</span>`;
+
+          item.addEventListener('click', () => {
+            document.querySelectorAll('.fj-cv-item').forEach(el => el.classList.remove('active'));
+            item.classList.add('active');
+
+            currentFile     = null;
+            currentAnalysis = {
+              analysis_id:   a.analysis_id,
+              resume_id:     a.resume_id,
+              major:         a.major,
+              filename:      a.filename,
+              overall_score: a.overall_score
+            };
+
+            renderDzCard(
+              { name: a.filename, meta: `Analysed CV · Score ${score}%`, status: 'Ready for job match' },
+              'panel-replace-btn',
+              'panel-remove-btn'
+            );
+
+            updateSearchBtn();
+            showToast(`Loaded: ${a.filename}`, 'success');
+          });
+
+          listDiv.appendChild(item);
+        });
+      }
+    } catch (e) { console.warn(e); }
+  }
+
+  /* ══════════════════════════════════════
+     INIT
+  ══════════════════════════════════════ */
+  async function init() {
+    // MUST save original dropzone HTML before anything changes it
+    originalDzHTML = dropZone.innerHTML;
+
+    attachDropZone();
+
+    // Add spin keyframe
+    const s = document.createElement('style');
+    s.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
+    document.head.appendChild(s);
+
+    // Auth / user info
+    try {
+      const r = await fetch(`${API}/auth/me`, { headers: { 'Authorization': `Bearer ${token()}` } });
+      if (r.ok) {
+        const d = await r.json();
+        document.getElementById('fj-avatar').textContent = (d.name || 'A')[0].toUpperCase();
+        document.getElementById('fj-name').textContent   = d.name || 'User';
+      }
+    } catch {}
+
+    // Logout
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+      try { await fetch('/auth/logout', { method:'POST', headers:{ 'Authorization':`Bearer ${token()}` } }); } catch {}
+      localStorage.removeItem('access_token');
+      window.location.href = '/signin';
+    });
+
+    await loadHistory();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>

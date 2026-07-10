@@ -1,8 +1,7 @@
 // ============================================================
 // CONFIG
 // ============================================================
-const API_BASE = 'http://127.0.0.1:5000';
-
+const API_BASE = '';
 
 // ============================================================
 // HELPERS
@@ -87,8 +86,11 @@ async function handleSignIn(e) {
         saveToken(data.access_token);
         showSuccess('Login successful! Redirecting...');
 
+        // Admins go to the admin panel, everyone else to the dashboard.
+        const destination = (data.user && data.user.is_admin) ? '/admin' : '/dashboard';
+
         setTimeout(() => {
-            window.location.href = '/dashboard';
+            window.location.href = destination;
         }, 1000);
 
     } catch (err) {
@@ -147,8 +149,11 @@ async function handleSignUp(e) {
         saveToken(data.access_token);
         showSuccess('Account created! Redirecting...');
 
+        // Admins go to the admin panel, everyone else to the dashboard.
+        const destination = (data.user && data.user.is_admin) ? '/admin' : '/dashboard';
+
         setTimeout(() => {
-            window.location.href = '/dashboard';
+            window.location.href = destination;
         }, 1000);
 
     } catch (err) {

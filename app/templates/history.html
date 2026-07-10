@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>MyCV — History</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}"/>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/history.css') }}"/>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/chatbot.css') }}"/>
+
+<!-- 
+  PASTE THIS <style> BLOCK inside <head> of history.html
+  Place it AFTER your existing <link> tags for dashboard.css and history.css
+-->
+<style>
+/* ── Match dashboard.html gradient + topbar exactly ── */
+:root {
+  --c-bg:      #F0F4FF;
+  --c-surface: #ffffff;
+  --c-border:  rgba(37,99,235,0.10);
+  --c-text:    #0f1624;
+  --c-muted:   rgba(15,22,36,0.55);
+  --c-primary: #2563EB;
+  --c-accent:  #06B6D4;
+  --c-danger:  #ef4444;
+  --grad-main: linear-gradient(135deg,#2563EB 0%,#06B6D4 100%);
+  --grad-bg:   linear-gradient(160deg,#EEF2FF 0%,#E0F2FE 50%,#F0FDF4 100%);
+  --shadow-sm: 0 2px 12px rgba(37,99,235,0.08);
+  --shadow-md: 0 8px 32px rgba(37,99,235,0.12);
+  --radius-sm: 10px; --radius-md:16px; --radius-lg:20px;
+  --font:'Plus Jakarta Sans',sans-serif;
+  --topbar-h: 58px;
+  /* Aliases used by history.css */
+  --color-border:var(--c-border);
+  --color-text:var(--c-text);
+  --color-white:#fff;
+  --color-background:var(--c-bg);
+  --color-muted:var(--c-muted);
+  --color-primary:var(--c-primary);
+  --color-accent:var(--c-accent);
+  --color-danger:var(--c-danger);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;height:100%}
+body{
+  font-family:var(--font);
+  background:var(--c-bg);
+  color:var(--c-text);
+  height:100%;
+  overflow:hidden;
+}
+a{color:inherit;text-decoration:none}
+ul,ol{list-style:none}
+
+/* Gradient background — same radial gradients as dashboard */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;
+  background:
+    radial-gradient(ellipse 70% 55% at 5% 0%,rgba(37,99,235,0.10) 0%,transparent 65%),
+    radial-gradient(ellipse 55% 50% at 95% 15%,rgba(6,182,212,0.09) 0%,transparent 60%),
+    radial-gradient(ellipse 65% 55% at 50% 65%,rgba(37,99,235,0.06) 0%,transparent 65%),
+    var(--grad-bg);
+  pointer-events:none;
+}
+
+/* App shell */
+.app-shell{
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  position:relative;
+  z-index:1;
+}
+
+/* Topbar */
+.topbar{
+  flex-shrink:0;
+  height:58px;
+  background:rgba(240,244,255,0.88);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--c-border);
+  transition:background .3s,box-shadow .3s;
+  z-index:200;
+}
+.topbar.scrolled{
+  background:rgba(255,255,255,0.94);
+  box-shadow:var(--shadow-sm);
+}
+
+.topbar__inner{
+  max-width:1400px;
+  margin-inline:auto;
+  padding:0 28px;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+}
+
+/* Brand */
+.brand{
+  display:inline-flex;align-items:center;gap:9px;
+  font-weight:800;font-size:16px;
+  letter-spacing:-.03em;color:var(--c-text);
+}
+.brand__mark{
+  width:32px;height:32px;
+  display:grid;place-items:center;
+  border-radius:9px;color:#fff;
+  font-weight:900;font-size:14px;
+  background:var(--grad-main);
+  box-shadow:0 4px 12px rgba(37,99,235,.28);
+}
+
+/* Nav links */
+.topbar__nav{display:flex;align-items:center;gap:2px;margin-left:auto}
+.topbar__link{
+  position:relative;font-weight:500;font-size:13.5px;
+  color:var(--c-muted);padding:6px 12px;
+  border-radius:999px;
+  transition:color .2s,background .2s;
+}
+.topbar__link:hover{color:var(--c-text);background:rgba(37,99,235,.06)}
+.topbar__link--active{
+  color:var(--c-primary);
+  background:rgba(37,99,235,.08);
+  font-weight:600;
+}
+.topbar__link--active::after{
+  content:'';position:absolute;
+  bottom:-1px;left:50%;transform:translateX(-50%);
+  width:16px;height:2px;
+  border-radius:999px;
+  background:var(--grad-main);
+}
+
+/* User pill */
+.topbar__user{
+  display:flex;align-items:center;gap:9px;
+  padding:5px 12px 5px 5px;
+  border-radius:999px;
+  background:rgba(255,255,255,.72);
+  border:1px solid var(--c-border);
+  cursor:pointer;
+  transition:box-shadow .2s,border-color .2s;
+}
+.topbar__user:hover{
+  box-shadow:var(--shadow-sm);
+  border-color:rgba(37,99,235,.18);
+}
+.avatar{
+  width:30px;height:30px;
+  display:grid;place-items:center;
+  border-radius:50%;color:#fff;
+  font-weight:700;font-size:13px;
+  background:var(--grad-main);
+  flex-shrink:0;
+}
+.topbar__username{font-size:12.5px;font-weight:700;color:var(--c-text)}
+.topbar__role{font-size:10.5px;color:var(--c-muted)}
+
+/* Layout shell — override history.css 76px with 58px */
+.layout{
+  display:block !important;
+  grid-template-columns:none !important;
+  flex:1;
+  height:calc(100vh - 58px);
+  overflow:hidden;
+}
+
+/* Fix history layout specifically */
+.hst-layout{
+  height:calc(100vh - 58px) !important;
+}
+</style>
+</head>
+
+<body>
+<a class="skip-link" href="#main-content">Skip to content</a>
+
+<div class="app-shell">
+
+  <!-- ══════════════════════════
+       TOPBAR  (identical to dashboard)
+  ══════════════════════════ -->
+  <header class="topbar" id="topbar">
+    <div class="topbar__inner">
+      <a class="brand" href="/">
+        <span class="brand__mark">C</span>
+        <span class="brand__name">MyCV</span>
+      </a>
+      <nav class="topbar__nav" aria-label="Primary navigation">
+        <a class="topbar__link " href="/build-cv">Build CV</a>
+        <a class="topbar__link "  href="/rebuild">Rebuild CV</a>
+        <a class="topbar__link" href="/compare-cv">Compare CV</a>
+        <a class="topbar__link " href="/dashboard">Analyse CV</a>
+        <a class="topbar__link " href="/cover-letter">Cover Letter</a>
+        <a class="topbar__link  "  href="/find-job">Find Job</a>
+        <a class="topbar__link topbar__link--active" href="/history">History</a>
+        <a class="topbar__link" href="/profile">Profile</a>
+      </nav>
+      <button class="btn--logout" id="logout-btn" type="button" aria-label="Logout">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+    <polyline points="16 17 21 12 16 7"/>
+    <line x1="21" y1="12" x2="9" y2="12"/>
+  </svg>
+  <span>Logout</span>
+</button>
+      
+  </header>
+
+  <div class="layout hst-layout">
+    <main id="main-content" class="hst-main" role="main">
+
+      <!-- ── PAGE HEADER ── -->
+      <section class="hst-page-header" aria-labelledby="page-title">
+        <div class="hst-page-header__left">
+          <span class="hst-eyebrow">
+            <span class="hst-eyebrow__dot"></span>
+            Analysis History
+          </span>
+          <h1 id="page-title" class="hst-page-title">Your CV Analyses</h1>
+          <p class="hst-page-subtitle">
+            All your past ATS reports — preview, export or delete any time.
+          </p>
+        </div>
+        <a href="/dashboard" class="btn btn--primary hst-new-btn">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          New Analysis
+        </a>
+      </section>
+
+      <!-- ── STATS STRIP ── -->
+      <div class="hst-stats" id="hst-stats">
+        <div class="hst-stat">
+          <div class="hst-stat__icon hst-stat__icon--blue">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
+          </div>
+          <div>
+            <p class="hst-stat__val" id="stat-total">—</p>
+            <p class="hst-stat__lbl">Total analyses</p>
+          </div>
+        </div>
+        <div class="hst-stat">
+          <div class="hst-stat__icon hst-stat__icon--green">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
+              <polyline points="16 7 22 7 22 13"/>
+            </svg>
+          </div>
+          <div>
+            <p class="hst-stat__val" id="stat-avg">—</p>
+            <p class="hst-stat__lbl">Average score</p>
+          </div>
+        </div>
+        <div class="hst-stat">
+          <div class="hst-stat__icon hst-stat__icon--orange">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+          </div>
+          <div>
+            <p class="hst-stat__val" id="stat-best">—</p>
+            <p class="hst-stat__lbl">Best score</p>
+          </div>
+        </div>
+        <div class="hst-stat">
+          <div class="hst-stat__icon hst-stat__icon--cyan">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
+          <div>
+            <p class="hst-stat__val" id="stat-recent">—</p>
+            <p class="hst-stat__lbl">Last analysis</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── FILTER BAR ── -->
+      <div class="hst-filter-bar">
+        <div class="hst-search">
+          <svg class="hst-search__ico" width="14" height="14" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input class="hst-search__input" id="search-input" type="text"
+                 placeholder="Search by filename or industry…" autocomplete="off"/>
+        </div>
+        <div class="hst-chips" id="filter-chips" role="group" aria-label="Filter by industry">
+          <button class="hst-chip hst-chip--active" data-filter="all" type="button">All</button>
+          <button class="hst-chip" data-filter="technology"  type="button">💻 Technology</button>
+          <button class="hst-chip" data-filter="medical"     type="button">🏥 Medical</button>
+          <button class="hst-chip" data-filter="engineering" type="button">⚙️ Engineering</button>
+          <button class="hst-chip" data-filter="financial"   type="button">📊 Financial</button>
+          <button class="hst-chip" data-filter="marketing"   type="button">📣 Marketing</button>
+        </div>
+        <div class="hst-sort">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="21" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/>
+            <line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="3" y2="18"/>
+          </svg>
+          <select class="hst-sort__sel" id="sort-select" aria-label="Sort order">
+            <option value="date_desc">Newest first</option>
+            <option value="date_asc">Oldest first</option>
+            <option value="score_desc">Highest score</option>
+            <option value="score_asc">Lowest score</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- ── SKELETON ── -->
+      <div class="hst-skeleton-wrap" id="skeleton-wrap">
+        <div class="hst-skeleton-card" style="animation-delay:0s">
+          <div class="hst-ske hst-ske--icon"></div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+            <div class="hst-ske" style="width:55%;height:14px"></div>
+            <div class="hst-ske" style="width:35%;height:11px"></div>
+          </div>
+          <div class="hst-ske hst-ske--ring"></div>
+          <div style="display:flex;gap:8px">
+            <div class="hst-ske" style="width:84px;height:32px;border-radius:999px"></div>
+            <div class="hst-ske" style="width:84px;height:32px;border-radius:999px"></div>
+            <div class="hst-ske" style="width:36px;height:32px;border-radius:999px"></div>
+          </div>
+        </div>
+        <div class="hst-skeleton-card" style="animation-delay:.08s">
+          <div class="hst-ske hst-ske--icon"></div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+            <div class="hst-ske" style="width:48%;height:14px"></div>
+            <div class="hst-ske" style="width:30%;height:11px"></div>
+          </div>
+          <div class="hst-ske hst-ske--ring"></div>
+          <div style="display:flex;gap:8px">
+            <div class="hst-ske" style="width:84px;height:32px;border-radius:999px"></div>
+            <div class="hst-ske" style="width:84px;height:32px;border-radius:999px"></div>
+            <div class="hst-ske" style="width:36px;height:32px;border-radius:999px"></div>
+          </div>
+        </div>
+        <div class="hst-skeleton-card" style="animation-delay:.16s">
+          <div class="hst-ske hst-ske--icon"></div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+            <div class="hst-ske" style="width:62%;height:14px"></div>
+            <div class="hst-ske" style="width:40%;height:11px"></div>
+          </div>
+          <div class="hst-ske hst-ske--ring"></div>
+          <div style="display:flex;gap:8px">
+            <div class="hst-ske" style="width:84px;height:32px;border-radius:999px"></div>
+            <div class="hst-ske" style="width:84px;height:32px;border-radius:999px"></div>
+            <div class="hst-ske" style="width:36px;height:32px;border-radius:999px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── HISTORY LIST (populated by JS) ── -->
+      <div class="hst-list" id="hst-list" role="list" style="display:none"></div>
+
+      <!-- ── EMPTY STATE ── -->
+      <div class="hst-empty" id="hst-empty" style="display:none">
+        <div class="hst-empty__icon">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+        </div>
+        <h2 class="hst-empty__title" id="empty-title">No analyses yet</h2>
+        <p class="hst-empty__text" id="empty-text">
+          Upload your first CV to get an AI-powered ATS score and personalised recommendations.
+        </p>
+        <a href="/dashboard" class="btn btn--primary" style="margin-top:4px">
+          Analyse your first CV →
+        </a>
+      </div>
+
+      <!-- ── PAGINATION ── -->
+      <div class="hst-pagination" id="hst-pagination" style="display:none"></div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     DELETE MODAL
+════════════════════════════════════════ -->
+<div class="hst-backdrop" id="delete-modal" role="dialog" aria-modal="true"
+     aria-labelledby="del-modal-title" style="display:none">
+  <div class="hst-modal">
+    <div class="hst-modal__danger-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="3 6 5 6 21 6"/>
+        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+        <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+      </svg>
+    </div>
+    <h2 class="hst-modal__title" id="del-modal-title">Delete this analysis?</h2>
+    <p class="hst-modal__body" id="del-modal-body">
+      This will permanently remove the analysis report. This cannot be undone.
+    </p>
+    <div class="hst-modal__actions">
+      <button class="btn btn--ghost" id="delete-cancel" type="button">Cancel</button>
+      <button class="btn btn--danger-solid" id="delete-confirm" type="button">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+        </svg>
+        Delete
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     PREVIEW MODAL
+════════════════════════════════════════ -->
+<div class="hst-backdrop" id="preview-modal" role="dialog" aria-modal="true"
+     aria-labelledby="prev-modal-title" style="display:none">
+  <div class="hst-modal hst-modal--wide">
+    <div class="hst-modal__header">
+      <h2 class="hst-modal__title" id="prev-modal-title">Analysis Report</h2>
+      <button class="hst-modal__close" id="preview-close" type="button" aria-label="Close">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="hst-modal__scroll" id="preview-body">
+      <!-- Populated by history.js -->
+    </div>
+    <div class="hst-modal__footer">
+      <button class="btn btn--ghost" id="preview-close-2" type="button">Close</button>
+      <button class="btn btn--primary" id="preview-export" type="button">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Export PDF
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST RACK -->
+<div class="hst-toast-rack" id="toast-rack" aria-live="polite"></div>
+
+<!-- CDN: html2canvas + jsPDF for client-side PDF export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+<!-- History module files — load order matters -->
+<script src="{{ url_for('static', filename='js/history/history.state.js') }}"></script>
+<script src="{{ url_for('static', filename='js/history/history.api.js') }}"></script>
+<script src="{{ url_for('static', filename='js/history/history.render.js') }}"></script>
+<script src="{{ url_for('static', filename='js/history/history.modals.js') }}"></script>
+<script src="{{ url_for('static', filename='js/history/history.export.js') }}"></script>
+<script src="{{ url_for('static', filename='js/history/history.main.js') }}"></script>
+{% include 'chatbot.html' %}
+<script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
+
+
+<script>
+document.getElementById('logout-btn').addEventListener('click', async () => {
+  const token = localStorage.getItem('access_token');
+  try {
+    await fetch('/auth/logout', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+  } catch (e) {}
+  localStorage.removeItem('access_token');
+  window.location.href = '/signin';
+});
+</script>
+</body>
+</html>

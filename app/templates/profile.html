@@ -3,10 +3,12 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>ClickCV — Profile Settings</title>
+<title>MyCV — Profile Settings</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/chatbot.css') }}"/>
+
 <style>
 :root{--c-bg:#F0F4FF;--c-surface:#ffffff;--c-text:#0f1624;--c-muted:rgba(15,22,36,0.55);--c-primary:#2563EB;--c-accent:#06B6D4;--c-danger:#ef4444;--c-border:rgba(37,99,235,0.10);--grad-main:linear-gradient(135deg,#2563EB 0%,#06B6D4 100%);--grad-bg:linear-gradient(160deg,#EEF2FF 0%,#E0F2FE 50%,#F0FDF4 100%);--shadow-sm:0 2px 12px rgba(37,99,235,0.08);--shadow-md:0 8px 32px rgba(37,99,235,0.12);--radius-sm:10px;--radius-md:14px;--radius-lg:18px;--font:'Plus Jakarta Sans',sans-serif;--topbar-h:58px;}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -54,12 +56,17 @@ body::before{content:'';position:fixed;inset:0;z-index:0;background:radial-gradi
 .main-content{padding:16px 24px 20px;overflow-y:auto;}
 .page-header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px;padding:12px 20px;border-radius:var(--radius-lg);background:linear-gradient(135deg,rgba(37,99,235,.07) 0%,rgba(6,182,212,.05) 100%);border:1px solid rgba(37,99,235,.12);box-shadow:var(--shadow-sm);position:relative;overflow:hidden;}
 .page-header__left{display:flex;align-items:center;gap:14px}
+.page-header__right{display:flex;align-items:center;gap:10px;flex-shrink:0;position:relative;z-index:1}
 .page-header::before{content:'';position:absolute;top:-40px;right:-40px;width:130px;height:130px;border-radius:50%;background:radial-gradient(circle,rgba(6,182,212,.12) 0%,transparent 70%);pointer-events:none}
 .page-header__badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.16);font-size:11px;font-weight:600;color:var(--c-primary);white-space:nowrap;flex-shrink:0;}
 .page-header__badge-dot{width:6px;height:6px;border-radius:50%;background:var(--c-accent);box-shadow:0 0 5px var(--c-accent);animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.4)}}
 .page-header__title{font-size:18px;font-weight:800;letter-spacing:-.03em;color:var(--c-text)}
 .page-header__subtitle{font-size:12.5px;color:var(--c-muted)}
+.support-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:999px;background:rgba(255,255,255,.7);border:1px solid var(--c-border);font-size:12px;font-weight:700;color:var(--c-text);white-space:nowrap;transition:border-color .2s,box-shadow .2s,transform .18s;}
+.support-badge:hover{border-color:rgba(37,99,235,.25);box-shadow:var(--shadow-sm);transform:translateY(-1px)}
+.support-badge svg{color:var(--c-primary);flex-shrink:0}
+.support-badge__label{color:var(--c-muted);font-weight:600}
 .profile-grid{display:grid;grid-template-columns:1fr;gap:12px}
 .card{background:#fff;border:1px solid var(--c-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);overflow:hidden;transition:border-color .25s,box-shadow .25s,transform .2s;position:relative;}
 .card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--grad-main);transform:scaleX(0);transform-origin:left;transition:transform .35s}
@@ -80,9 +87,6 @@ body::before{content:'';position:fixed;inset:0;z-index:0;background:radial-gradi
 .avatar-block{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 12px;border-radius:var(--radius-md);background:rgba(37,99,235,.03);border:1px solid var(--c-border);text-align:center}
 .avatar-wrap{position:relative;width:64px;height:64px;margin-bottom:2px}
 .avatar-wrap__img{width:64px;height:64px;border-radius:50%;background:var(--grad-main);display:grid;place-items:center;font-size:22px;font-weight:800;color:#fff;box-shadow:0 4px 14px rgba(37,99,235,.28);overflow:hidden;}
-.avatar-wrap__badge{position:absolute;bottom:0;right:0;width:20px;height:20px;border-radius:50%;background:var(--c-primary);display:grid;place-items:center;border:2px solid #fff;color:#fff;cursor:pointer;transition:transform .2s}
-.avatar-wrap__badge:hover{transform:scale(1.1)}
-.avatar-wrap__badge svg{width:9px;height:9px}
 .avatar-block__name{font-size:12.5px;font-weight:700;color:var(--c-text)}
 .avatar-block__role{font-size:11px;color:var(--c-muted)}
 .avatar-block__since{font-size:10px;color:var(--c-muted);padding:3px 8px;border-radius:999px;background:rgba(37,99,235,.06);border:1px solid rgba(37,99,235,.10)}
@@ -136,8 +140,22 @@ body::before{content:'';position:fixed;inset:0;z-index:0;background:radial-gradi
 .reveal-delay-2{transition-delay:.12s}
 .reveal-delay-3{transition-delay:.18s}
 @media(max-width:1100px){.app-body{grid-template-columns:1fr;height:auto;overflow:visible}body{overflow:auto}.sidebar{border-right:0;border-bottom:1px solid var(--c-border);padding:12px 20px}.stats-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:820px){.topbar__inner,.main-content{padding-left:16px;padding-right:16px}.topbar__nav{display:none}.two-col-grid{grid-template-columns:1fr}.profile-info{grid-template-columns:1fr}.stats-grid{grid-template-columns:1fr 1fr}.danger-body{flex-direction:column;align-items:flex-start}}
-@media(max-width:560px){.stats-grid{grid-template-columns:1fr}}
+@media(max-width:820px){.topbar__inner,.main-content{padding-left:16px;padding-right:16px}.topbar__nav{display:none}.two-col-grid{grid-template-columns:1fr}.profile-info{grid-template-columns:1fr}.stats-grid{grid-template-columns:1fr 1fr}.danger-body{flex-direction:column;align-items:flex-start}.page-header{flex-wrap:wrap}.page-header__right{width:100%;justify-content:space-between}}
+@media(max-width:560px){.stats-grid{grid-template-columns:1fr}.page-header__right{flex-direction:column;align-items:stretch}.support-badge{justify-content:center}}
+.btn--logout{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 14px;border-radius:999px;
+  font-family:var(--font);font-weight:600;font-size:12px;
+  background:transparent;color:var(--c-muted);
+  border:1px solid var(--c-border);
+  cursor:pointer;transition:color .18s,background .18s,border-color .18s;
+  white-space:nowrap;margin-left:10px;
+}
+.btn--logout:hover{
+  color:var(--c-danger);
+  background:rgba(239,68,68,.06);
+  border-color:rgba(239,68,68,.25);
+}
 </style>
 </head>
 <body>
@@ -145,22 +163,26 @@ body::before{content:'';position:fixed;inset:0;z-index:0;background:radial-gradi
 <div class="app-shell">
   <header class="topbar" id="topbar">
     <div class="topbar__inner">
-      <a class="brand" href="/"><span class="brand__mark">C</span><span>ClickCV</span></a>
+      <a class="brand" href="/"><span class="brand__mark">C</span><span>MyCV</span></a>
       <nav class="topbar__nav" aria-label="Primary navigation">
-        <a class="topbar__link" href="/dashboard">Analyse CV</a>
-        <a class="topbar__link" href="/build-cv">Build CV</a>
+        <a class="topbar__link " href="/build-cv">Build CV</a>
+        <a class="topbar__link "  href="/rebuild">Rebuild CV</a>
         <a class="topbar__link" href="/compare-cv">Compare CV</a>
-        <a class="topbar__link" href="#history">History</a>
-        <a class="topbar__link topbar__link--active" href="/profile" aria-current="page">Profile</a>
+        <a class="topbar__link " href="/dashboard">Analyse CV</a>
+        <a class="topbar__link " href="/cover-letter">Cover Letter</a>
+        <a class="topbar__link  "  href="/find-job">Find Job</a>
+        <a class="topbar__link " href="/history">History</a>
+        <a class="topbar__link topbar__link--active" href="/profile">Profile</a>
       </nav>
-      <div class="topbar__user" aria-label="User profile">
-        <div class="topbar__avatar" id="topbar-avatar">A</div>
-        <div>
-          <span class="topbar__username" id="topbar-name">Loading…</span>
-          <span class="topbar__role">ClickCV User</span>
-        </div>
-      </div>
-    </div>
+     <button class="btn--logout" id="logout-btn" type="button" aria-label="Logout">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+    <polyline points="16 17 21 12 16 7"/>
+    <line x1="21" y1="12" x2="9" y2="12"/>
+  </svg>
+  <span>Logout</span>
+</button>
   </header>
   <div class="app-body">
     <aside class="sidebar" aria-label="Dashboard sidebar">
@@ -182,10 +204,18 @@ body::before{content:'';position:fixed;inset:0;z-index:0;background:radial-gradi
             <p class="page-header__subtitle">Manage your account information, preferences, and security.</p>
           </div>
         </div>
-        <button class="btn btn--danger btn--sm" type="button" data-action="delete-account" style="flex-shrink:0">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-          Delete Account
-        </button>
+        <div class="page-header__right">
+          <a class="support-badge" href="tel:+601117734612" title="Contact support">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.832 1.62l-.46.36a1 1 0 0 0-.302 1.214 14.05 14.05 0 0 0 6.392 6.384"/>
+            </svg>
+            <span class="support-badge__label">Support:</span> +60 11-1773 4612
+          </a>
+          <button class="btn btn--danger btn--sm" type="button" data-action="delete-account" style="flex-shrink:0">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            Delete Account
+          </button>
+        </div>
       </header>
       <div class="profile-grid">
         <!-- ROW 1: Account Info + Security -->
@@ -194,7 +224,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;background:radial-gradi
             <div class="card__header">
               <div class="card__header-left">
                 <div class="card__icon card__icon--blue"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
-                <div><h2 class="card__title" id="section-account">Account Information</h2><p class="card__subtitle">Update your name and profile photo.</p></div>
+                <div><h2 class="card__title" id="section-account">Account Information</h2><p class="card__subtitle">Update your name.</p></div>
               </div>
             </div>
             <div class="card__body">
@@ -202,12 +232,10 @@ body::before{content:'';position:fixed;inset:0;z-index:0;background:radial-gradi
                 <div class="avatar-block">
                   <div class="avatar-wrap">
                     <div class="avatar-wrap__img" id="avatar-img">A</div>
-                    <div class="avatar-wrap__badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
                   </div>
                   <p class="avatar-block__name" id="avatar-name">—</p>
                   <p class="avatar-block__role">ClickCV User</p>
                   <p class="avatar-block__since" id="avatar-since">Member since —</p>
-                  <button class="btn btn--outline btn--sm" type="button" data-action="upload-photo"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>Upload photo</button>
                 </div>
                 <div class="profile-info__fields">
                   <div class="form-row">
@@ -267,8 +295,23 @@ const mainEl = document.querySelector('.main-content');
 if(mainEl) mainEl.addEventListener('scroll',()=>topbar.classList.toggle('scrolled',mainEl.scrollTop>8));
 const observer = new IntersectionObserver((entries)=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');observer.unobserve(e.target);}});},{root:mainEl,threshold:0.05});
 document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+document.getElementById('logout-btn').addEventListener('click', async () => {
+  const token = localStorage.getItem('access_token');
+  try {
+    await fetch('/auth/logout', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+  } catch (e) {}
+  localStorage.removeItem('access_token');
+  window.location.href = '/signin';
+});
 </script>
 <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
 <script src="{{ url_for('static', filename='js/profile_settings.js') }}"></script>
+{% include 'chatbot.html' %}
+<script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
+
+
 </body>
 </html>

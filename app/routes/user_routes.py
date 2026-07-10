@@ -1,30 +1,25 @@
 # user_routes.py
-import os
-import uuid
 import bcrypt
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from werkzeug.utils import secure_filename
+from sqlalchemy import func
+
 from app.extensions import db
 from app.models.user import User
+from app.models.resume import Resume
+from app.models.analysis import (
+    ResumeAnalysis, AtsResult, ResumeSection, Recommendation,
+    JobDescription, ResumeComparison,
+)
+from app.models.generated_cv import GeneratedCv
 
 profile_bp = Blueprint("profile", __name__, url_prefix="/api/profile")
 
-# ---------------------------------------------------------------------------
-# CONFIG
-# ---------------------------------------------------------------------------
-AVATAR_FOLDER = os.path.join("app", "static", "uploads", "avatars")
-ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
-os.makedirs(AVATAR_FOLDER, exist_ok=True)
 
-
-def _allowed_file(filename: str) -> bool:
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
-
-
-def _get_user() -> User | None:
+def _get_user() -> "User | None":
+    """Return the current user only if they exist and are NOT soft-deleted."""
     user_id = get_jwt_identity()
-    return User.query.get(int(user_id))
+    return User.get_active(int(user_id))
 
 
 def _check_password(stored_hash: str, password: str) -> bool:
@@ -57,7 +52,7 @@ def get_profile():
         "last_name":     last_name,
         "email":         user.email,
         "auth_provider": user.auth_provider,
-        "avatar_url":    getattr(user, "avatar_url", None),
+        "avatar_url":    None,
         "created_at":    user.created_at.strftime("%b %d, %Y"),
     }), 200
 
@@ -125,52 +120,12 @@ def update_password():
 
 
 # ---------------------------------------------------------------------------
-# POST /api/profile/avatar
-# NOTE: Add avatar_url = db.Column(db.String(300), nullable=True) to User
-#       then: flask db migrate -m "add avatar_url" && flask db upgrade
-# ---------------------------------------------------------------------------
-@profile_bp.route("/avatar", methods=["POST"])
-@jwt_required()
-def update_avatar():
-    user = _get_user()
-    if not user:
-        return jsonify({"error": "User not found."}), 404
-
-    if "avatar" not in request.files:
-        return jsonify({"error": "No file provided."}), 400
-
-    file = request.files["avatar"]
-
-    if file.filename == "":
-        return jsonify({"error": "No file selected."}), 400
-
-    if not _allowed_file(file.filename):
-        return jsonify({"error": "Invalid file type. Use PNG, JPG, GIF or WEBP."}), 400
-
-    if request.content_length and request.content_length > 5 * 1024 * 1024:
-        return jsonify({"error": "File too large. Max is 5 MB."}), 413
-
-    old_url = getattr(user, "avatar_url", None)
-    if old_url:
-        old_path = os.path.join("app", "static", old_url.lstrip("/static/"))
-        if os.path.exists(old_path):
-            os.remove(old_path)
-
-    ext      = secure_filename(file.filename).rsplit(".", 1)[1].lower()
-    filename = f"{user.id}_{uuid.uuid4().hex}.{ext}"
-    file.save(os.path.join(AVATAR_FOLDER, filename))
-
-    user.avatar_url = f"/static/uploads/avatars/{filename}"
-    db.session.commit()
-
-    return jsonify({
-        "message":    "Avatar updated successfully.",
-        "avatar_url": user.avatar_url,
-    }), 200
-
-
-# ---------------------------------------------------------------------------
-# DELETE /api/profile/account
+# DELETE /api/profile/account  — SOFT DELETE
+#
+# Marks the user as deleted (sets deleted_at timestamp).
+# All data is preserved in the DB — only the user record is flagged.
+# The user cannot log in after this point because _get_user() and
+# auth_service both use get_active() which filters deleted_at IS NULL.
 # ---------------------------------------------------------------------------
 @profile_bp.route("/account", methods=["DELETE"])
 @jwt_required()
@@ -179,6 +134,7 @@ def delete_account():
     if not user:
         return jsonify({"error": "User not found."}), 404
 
+    # Local accounts must confirm with password
     if user.auth_provider == "local":
         data     = request.get_json(silent=True) or {}
         password = data.get("password", "").strip()
@@ -189,46 +145,37 @@ def delete_account():
         if not _check_password(user.password_hash, password):
             return jsonify({"error": "Incorrect password."}), 400
 
-    avatar_url = getattr(user, "avatar_url", None)
-    if avatar_url:
-        path = os.path.join("app", "static", avatar_url.lstrip("/static/"))
-        if os.path.exists(path):
-            os.remove(path)
-
-    db.session.delete(user)
-    db.session.commit()
+    try:
+        user.soft_delete()   # sets deleted_at = now, commits
+    except Exception:
+        db.session.rollback()
+        return jsonify({"error": "Failed to delete account. Please try again."}), 500
 
     return jsonify({"message": "Account deleted successfully."}), 200
 
+
 # ---------------------------------------------------------------------------
-# GET /api/profile/stats  — real account statistics
-# Add this route to your existing user_routes.py
+# GET /api/profile/stats
 # ---------------------------------------------------------------------------
 @profile_bp.route("/stats", methods=["GET"])
 @jwt_required()
 def get_stats():
-    from app.models.analysis import Analysis  # adjust import to your model name
-
     user = _get_user()
     if not user:
         return jsonify({"error": "User not found."}), 404
 
-    # Total analyses
-    total = Analysis.query.filter_by(user_id=user.id).count()
+    total = ResumeAnalysis.query.filter_by(user_id=user.id).count()
 
-    # Average score — assumes your Analysis model has a `score` column (0-100)
-    from sqlalchemy import func
-    avg_result = db.session.query(func.avg(Analysis.score)).filter_by(user_id=user.id).scalar()
-    avg_score  = round(avg_result, 1) if avg_result else 0
+    avg_result = db.session.query(
+        func.avg(ResumeAnalysis.overall_score)
+    ).filter_by(user_id=user.id).scalar()
+    avg_score = round(avg_result) if avg_result is not None else None
 
-    # Last analysis date
-    last = Analysis.query.filter_by(user_id=user.id)\
-                         .order_by(Analysis.created_at.desc())\
-                         .first()
-    last_date = last.created_at.strftime("%b %d") if last else "—"
-
-    # Member since
-    member_since = user.created_at.strftime("%b %Y")
+    last = ResumeAnalysis.query.filter_by(user_id=user.id) \
+                                .order_by(ResumeAnalysis.created_at.desc()) \
+                                .first()
+    last_date    = last.created_at.strftime("%b %d, %Y") if last else None
+    member_since = user.created_at.strftime("%b %d, %Y")
 
     return jsonify({
         "total_analyses": total,
